@@ -1,0 +1,45 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #0f1623;
+  --bg-card: #131a2b;
+  --accent: #64c8ff;
+  --accent-glow: rgba(100, 200, 255, 0.15);
+  --accent-dim: rgba(100, 200, 255, 0.6);
+  --text-primary: #e4eaf5;
+  --text-secondary: #8892a8;
+  --text-dim: #515c72;
+  --border: rgba(100, 200, 255, 0.08);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-dim) var(--bg-primary);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 4px; }
+
+::selection {
+  background: rgba(100, 200, 255, 0.3);
+  color: #fff;
+}
