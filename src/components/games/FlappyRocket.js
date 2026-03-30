@@ -4,6 +4,7 @@ const FlappyRocket = () => {
   const canvasRef = useRef(null);
   const gameRef = useRef({});
   const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const W = 300, H = 400;
 
@@ -24,7 +25,7 @@ const FlappyRocket = () => {
     ];
   }, []);
 
-  const start = useCallback(() => { reset(); setStarted(true); }, [reset]);
+  const start = useCallback(() => { reset(); setStarted(true); setGameOver(false); }, [reset]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -36,7 +37,7 @@ const FlappyRocket = () => {
       if (fromTouch) lastTouchTime = Date.now();
       if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) { start(); return; }
+      if (!g.running) return;
       g.bird.vy = -5.2;
     };
 
@@ -125,10 +126,10 @@ const FlappyRocket = () => {
         }
 
         // Collision
-        if (g.bird.y < 0 || g.bird.y > H) g.running = false;
+        if (g.bird.y < 0 || g.bird.y > H) { g.running = false; setGameOver(true); }
         g.pipes.forEach(p => {
           if (50 + 10 > p.x && 50 - 10 < p.x + 30) {
-            if (g.bird.y - 9 < p.gapY || g.bird.y + 9 > p.gapY + p.gap) g.running = false;
+            if (g.bird.y - 9 < p.gapY || g.bird.y + 9 > p.gapY + p.gap) { g.running = false; setGameOver(true); }
           }
         });
       }
@@ -265,7 +266,7 @@ const FlappyRocket = () => {
         ctx.fillStyle = '#c8d0e0'; ctx.font = '13px "JetBrains Mono", monospace';
         ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 12);
         ctx.fillStyle = '#8892a8'; ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or click to retry', W / 2, H / 2 + 35);
+        ctx.fillText('Press Retry to play again', W / 2, H / 2 + 35);
       }
       animId = requestAnimationFrame(draw);
     };
@@ -278,7 +279,16 @@ const FlappyRocket = () => {
     };
   }, [started, start]);
 
-  return <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 300 }}>
+      <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />
+      {gameOver && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default FlappyRocket;

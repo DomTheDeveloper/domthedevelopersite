@@ -4,6 +4,7 @@ const AsteroidShooter = () => {
   const canvasRef = useRef(null);
   const gameRef = useRef({});
   const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const W = 400, H = 300;
 
@@ -31,7 +32,7 @@ const AsteroidShooter = () => {
     }));
   }, []);
 
-  const start = useCallback(() => { reset(); setStarted(true); }, [reset]);
+  const start = useCallback(() => { reset(); setStarted(true); setGameOver(false); }, [reset]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,7 +63,7 @@ const AsteroidShooter = () => {
     const handleDown = (e) => {
       if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) { start(); return; }
+      if (!g.running) return;
       g.mouseDown = true;
       shoot();
     };
@@ -73,7 +74,7 @@ const AsteroidShooter = () => {
       e.preventDefault();
       if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) { start(); return; }
+      if (!g.running) return;
       const touch = e.touches[0];
       const pos = getCanvasPos(touch.clientX, touch.clientY);
       g.mouseX = pos.x;
@@ -256,6 +257,7 @@ const AsteroidShooter = () => {
                 g.asteroids = g.asteroids.filter(ast => !ast.hit);
                 if (g.hp <= 0) {
                   g.running = false;
+                  setGameOver(true);
                   spawnExplosion(g.ship.x, g.ship.y, 30, '#ff6b6b', 6);
                 }
               }
@@ -391,7 +393,7 @@ const AsteroidShooter = () => {
         ctx.fillStyle = '#c8d0e0'; ctx.font = '13px "JetBrains Mono", monospace';
         ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 10);
         ctx.fillStyle = '#8892a8'; ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or click to retry', W / 2, H / 2 + 32);
+        ctx.fillText('Press Retry to play again', W / 2, H / 2 + 32);
       }
 
       animId = requestAnimationFrame(draw);
@@ -409,7 +411,16 @@ const AsteroidShooter = () => {
     };
   }, [started, start]);
 
-  return <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'crosshair', display: 'block', touchAction: 'none' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+      <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'crosshair', display: 'block', touchAction: 'none' }} />
+      {gameOver && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default AsteroidShooter;

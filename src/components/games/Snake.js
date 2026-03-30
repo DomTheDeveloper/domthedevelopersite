@@ -5,6 +5,7 @@ const Snake = () => {
   const gameRef = useRef({});
   const [, setScore] = useState(0);
   const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [, setBest] = useState(0);
 
   const W = 400, H = 400, CELL = 20;
@@ -23,6 +24,7 @@ const Snake = () => {
   const start = useCallback(() => {
     resetGame();
     setStarted(true);
+    setGameOver(false);
   }, [resetGame]);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ const Snake = () => {
     const handleKey = (e) => {
       if (!started) return;
       const g = gameRef.current;
-      if (!g.running) { start(); return; }
+      if (!g.running) return;
       const map = { ArrowUp: { x: 0, y: -1 }, ArrowDown: { x: 0, y: 1 }, ArrowLeft: { x: -1, y: 0 }, ArrowRight: { x: 1, y: 0 }, w: { x: 0, y: -1 }, s: { x: 0, y: 1 }, a: { x: -1, y: 0 }, d: { x: 1, y: 0 } };
       const nd = map[e.key];
       if (nd && !(nd.x === -g.dir.x && nd.y === -g.dir.y)) {
@@ -65,7 +67,7 @@ const Snake = () => {
       if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // ignore taps
       if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) { start(); return; }
+      if (!g.running) return;
       let nd;
       if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
       else nd = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
@@ -75,7 +77,6 @@ const Snake = () => {
     window.addEventListener('keydown', handleKey);
     canvas.addEventListener('click', () => {
       if (!started) start();
-      else if (gameRef.current && !gameRef.current.running) start();
     });
     canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
     canvas.addEventListener('touchend', handleTouchEnd);
@@ -94,6 +95,7 @@ const Snake = () => {
       // self collision
       if (g.snake.some(s => s.x === head.x && s.y === head.y)) {
         g.running = false;
+        setGameOver(true);
         setBest(prev => Math.max(prev, g.score));
         return;
       }
@@ -170,7 +172,7 @@ const Snake = () => {
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
         ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 15);
-        ctx.fillText('Swipe to retry', W / 2, H / 2 + 35);
+        ctx.fillText('Press Retry to play again', W / 2, H / 2 + 35);
       }
     };
 
@@ -186,9 +188,16 @@ const Snake = () => {
   }, [started, start]);
 
   return (
-    <canvas ref={canvasRef} width={W} height={H}
-      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
-    />
+    <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+      <canvas ref={canvasRef} width={W} height={H}
+        style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
+      />
+      {gameOver && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)' }}>
+          Retry
+        </button>
+      )}
+    </div>
   );
 };
 

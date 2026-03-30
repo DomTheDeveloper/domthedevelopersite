@@ -4,7 +4,7 @@ const SpaceRunner = () => {
   const canvasRef = useRef(null);
   const gameRef = useRef({});
   const [, setScore] = useState(0);
-  const [, setGameOver] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [started, setStarted] = useState(false);
   const [highScore, setHighScore] = useState(0);
 
@@ -48,7 +48,7 @@ const SpaceRunner = () => {
     const jump = () => {
       if (!started) { startGame(); return; }
       const g = gameRef.current;
-      if (!g.running) { startGame(); return; }
+      if (!g.running) return;
       if (g.player.grounded) {
         g.player.vy = -7.5;
         g.player.grounded = false;
@@ -352,7 +352,7 @@ const SpaceRunner = () => {
         ctx.fillText(`Score: ${g.score}`, W / 2, 108);
         ctx.fillStyle = '#8892a8';
         ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or press Space to retry', W / 2, 135);
+        ctx.fillText('Press Retry to play again', W / 2, 135);
       }
 
       animId = requestAnimationFrame(draw);
@@ -369,9 +369,16 @@ const SpaceRunner = () => {
   }, [started, startGame, highScore]);
 
   return (
-    <canvas ref={canvasRef} width={W} height={H}
-      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
-    />
+    <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+      <canvas ref={canvasRef} width={W} height={H}
+        style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
+      />
+      {gameOver && (
+        <button onClick={startGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '25%', transform: 'translateX(-50%)' }}>
+          Retry
+        </button>
+      )}
+    </div>
   );
 };
 
