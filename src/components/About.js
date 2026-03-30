@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import InteractiveTerminal from './InteractiveTerminal';
+import InteractiveTerminal from './techzone/InteractiveTerminal';
 
 const About = () => {
   const ref = useRef();

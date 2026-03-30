@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
+import TechZone from './components/TechZone';
 import Contact from './components/Contact';
-import Arcade from './components/Arcade';
-import Starfield from './components/Starfield';
 import ParticleField from './components/ParticleField';
 import ClickSpark from './components/ClickSpark';
 import Navbar from './components/Navbar';
@@ -27,8 +26,7 @@ function App() {
       <Hero scrollY={scrollY} />
       <About />
       <Projects />
-      <Arcade />
-      <Starfield />
+      <TechZone />
       <Contact />
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>

@@ -10,7 +10,12 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const links = ['About', 'Projects', 'Arcade', 'Starfield', 'Contact'];
+  const links = [
+    { label: 'About', href: 'about' },
+    { label: 'Projects', href: 'projects' },
+    { label: 'Tech Zone', href: 'techzone' },
+    { label: 'Contact', href: 'contact' },
+  ];
 
   return (
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
@@ -29,12 +34,12 @@ const Navbar = () => {
         </button>
         <ul className={`navbar__links ${menuOpen ? 'navbar__links--open' : ''}`}>
           {links.map(link => (
-            <li key={link}>
+            <li key={link.href}>
               <a
-                href={`#${link.toLowerCase()}`}
+                href={`#${link.href}`}
                 onClick={() => setMenuOpen(false)}
               >
-                {link}
+                {link.label}
               </a>
             </li>
           ))}
