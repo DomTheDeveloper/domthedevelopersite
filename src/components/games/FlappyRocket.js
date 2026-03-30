@@ -35,9 +35,8 @@ const FlappyRocket = () => {
     let lastTouchTime = 0;
     const flap = (fromTouch) => {
       if (fromTouch) lastTouchTime = Date.now();
-      if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) return;
+      if (!started || !g.running) return;
       g.bird.vy = -5.2;
     };
 
@@ -70,7 +69,7 @@ const FlappyRocket = () => {
         ctx.moveTo(W / 2 + 15, H / 2 + 10); ctx.lineTo(W / 2 - 10, H / 2 + 2); ctx.lineTo(W / 2 - 10, H / 2 + 18);
         ctx.closePath(); ctx.fill(); ctx.restore();
         ctx.fillStyle = '#8892a8'; ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or press Space to fly', W / 2, H / 2 + 45);
+        ctx.fillText('Press Start to play', W / 2, H / 2 + 45);
         animId = requestAnimationFrame(draw); return;
       }
 
@@ -282,6 +281,11 @@ const FlappyRocket = () => {
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 300 }}>
       <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />
+      {!started && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
+          Start
+        </button>
+      )}
       {gameOver && (
         <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
           Retry

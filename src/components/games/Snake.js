@@ -65,9 +65,8 @@ const Snake = () => {
       const dx = e.changedTouches[0].clientX - touchStart.x;
       const dy = e.changedTouches[0].clientY - touchStart.y;
       if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // ignore taps
-      if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) return;
+      if (!started || !g.running) return;
       let nd;
       if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
       else nd = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
@@ -75,9 +74,7 @@ const Snake = () => {
     };
 
     window.addEventListener('keydown', handleKey);
-    canvas.addEventListener('click', () => {
-      if (!started) start();
-    });
+    // no click-to-start; use button instead
     canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
     canvas.addEventListener('touchend', handleTouchEnd);
 
@@ -130,7 +127,7 @@ const Snake = () => {
         ctx.fillText('SNAKE', W / 2, H / 2 - 20);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Swipe to play', W / 2, H / 2 + 10);
+        ctx.fillText('Press Start to play', W / 2, H / 2 + 10);
         return;
       }
 
@@ -192,6 +189,11 @@ const Snake = () => {
       <canvas ref={canvasRef} width={W} height={H}
         style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
       />
+      {!started && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '45%', transform: 'translateX(-50%)' }}>
+          Start
+        </button>
+      )}
       {gameOver && (
         <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)' }}>
           Retry

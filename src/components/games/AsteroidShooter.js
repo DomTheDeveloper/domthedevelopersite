@@ -61,9 +61,8 @@ const AsteroidShooter = () => {
     };
 
     const handleDown = (e) => {
-      if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) return;
+      if (!started || !g.running) return;
       g.mouseDown = true;
       shoot();
     };
@@ -72,9 +71,8 @@ const AsteroidShooter = () => {
 
     const handleTouchStart = (e) => {
       e.preventDefault();
-      if (!started) { start(); return; }
       const g = gameRef.current;
-      if (!g.running) return;
+      if (!started || !g.running) return;
       const touch = e.touches[0];
       const pos = getCanvasPos(touch.clientX, touch.clientY);
       g.mouseX = pos.x;
@@ -160,8 +158,7 @@ const AsteroidShooter = () => {
         ctx.fillStyle = '#64c8ff'; ctx.font = 'bold 18px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
         ctx.fillText('ASTEROID SHOOTER', W / 2, H / 2 - 20);
         ctx.fillStyle = '#8892a8'; ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap to shoot, drag to move', W / 2, H / 2 + 10);
-        ctx.fillText('Destroy asteroids to survive', W / 2, H / 2 + 28);
+        ctx.fillText('Press Start to play', W / 2, H / 2 + 10);
         animId = requestAnimationFrame(draw); return;
       }
 
@@ -414,6 +411,11 @@ const AsteroidShooter = () => {
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
       <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'crosshair', display: 'block', touchAction: 'none' }} />
+      {!started && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)' }}>
+          Start
+        </button>
+      )}
       {gameOver && (
         <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
           Retry

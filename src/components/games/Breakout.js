@@ -4,6 +4,7 @@ const Breakout = () => {
   const canvasRef = useRef(null);
   const gameRef = useRef({});
   const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const W = 400, H = 300;
 
@@ -23,7 +24,7 @@ const Breakout = () => {
     }
   }, []);
 
-  const start = useCallback(() => { resetGame(); setStarted(true); }, [resetGame]);
+  const start = useCallback(() => { resetGame(); setStarted(true); setGameOver(false); }, [resetGame]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,8 +46,6 @@ const Breakout = () => {
 
     canvas.addEventListener('mousemove', handleMove);
     canvas.addEventListener('touchmove', handleTouch, { passive: false });
-    canvas.addEventListener('click', () => { if (!started) start(); });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!started) start(); }, { passive: false });
 
     const draw = () => {
       const g = gameRef.current;
@@ -60,7 +59,7 @@ const Breakout = () => {
         ctx.fillText('BREAKOUT', W / 2, H / 2 - 15);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or click to start', W / 2, H / 2 + 15);
+        ctx.fillText('Press Start to play', W / 2, H / 2 + 15);
         animId = requestAnimationFrame(draw);
         return;
       }
@@ -71,7 +70,7 @@ const Breakout = () => {
 
         if (b.x <= b.r || b.x >= W - b.r) b.vx *= -1;
         if (b.y <= b.r) b.vy *= -1;
-        if (b.y >= H) { g.running = false; }
+        if (b.y >= H) { g.running = false; setGameOver(true); }
 
         const p = g.paddle;
         if (b.y + b.r >= p.y && b.x >= p.x && b.x <= p.x + p.w && b.vy > 0) {
@@ -93,6 +92,7 @@ const Breakout = () => {
 
         if (g.bricks.every(b => !b.alive)) {
           g.running = false;
+          setGameOver(true);
         }
       }
 
@@ -152,7 +152,21 @@ const Breakout = () => {
     return () => { cancelAnimationFrame(animId); canvas.removeEventListener('mousemove', handleMove); canvas.removeEventListener('touchmove', handleTouch); };
   }, [started, start]);
 
-  return <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+      <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />
+      {!started && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)', zIndex: 1 }}>
+          Start
+        </button>
+      )}
+      {gameOver && (
+        <button onClick={start} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)', zIndex: 1 }}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default Breakout;

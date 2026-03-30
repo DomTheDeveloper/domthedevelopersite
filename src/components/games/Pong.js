@@ -48,12 +48,8 @@ const Pong = () => {
       gameRef.current.playerPaddle.y = Math.max(0, Math.min(140, y - 30));
     };
 
-    const handleClick = () => { if (!started) startGame(); };
-
     canvas.addEventListener('mousemove', handleMove);
     canvas.addEventListener('touchmove', handleTouch, { passive: false });
-    canvas.addEventListener('click', handleClick);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!started) startGame(); }, { passive: false });
 
     const draw = () => {
       const g = gameRef.current;
@@ -72,7 +68,7 @@ const Pong = () => {
         ctx.fillText('NEON PONG', 200, 80);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or click to start', 200, 110);
+        ctx.fillText('Press Start to play', 200, 110);
         animId = requestAnimationFrame(draw);
         return;
       }
@@ -199,17 +195,23 @@ const Pong = () => {
       cancelAnimationFrame(animId);
       canvas.removeEventListener('mousemove', handleMove);
       canvas.removeEventListener('touchmove', handleTouch);
-      canvas.removeEventListener('click', handleClick);
     };
   }, [started, startGame, resetBall]);
 
   return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+    {!started && (
+      <button onClick={startGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)', zIndex: 1 }}>
+        Start
+      </button>
+    )}
     <canvas
       ref={canvasRef}
       width={400}
       height={200}
       style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
     />
+    </div>
   );
 };
 

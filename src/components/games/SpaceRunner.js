@@ -46,9 +46,8 @@ const SpaceRunner = () => {
     let animId;
 
     const jump = () => {
-      if (!started) { startGame(); return; }
       const g = gameRef.current;
-      if (!g.running) return;
+      if (!started || !g.running) return;
       if (g.player.grounded) {
         g.player.vy = -7.5;
         g.player.grounded = false;
@@ -102,7 +101,7 @@ const SpaceRunner = () => {
         ctx.fillText('SPACE RUNNER', W / 2, 75);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or press Space to start', W / 2, 105);
+        ctx.fillText('Press Start to play', W / 2, 105);
         ctx.fillText('Jump over asteroids, collect energy', W / 2, 122);
 
         // draw idle ship
@@ -373,6 +372,11 @@ const SpaceRunner = () => {
       <canvas ref={canvasRef} width={W} height={H}
         style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
       />
+      {!started && (
+        <button onClick={startGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)' }}>
+          Start
+        </button>
+      )}
       {gameOver && (
         <button onClick={startGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '25%', transform: 'translateX(-50%)' }}>
           Retry
