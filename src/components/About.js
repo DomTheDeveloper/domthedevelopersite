@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import InteractiveTerminal from './InteractiveTerminal';
 
 const About = () => {
   const ref = useRef();
@@ -35,23 +36,7 @@ const About = () => {
             </p>
           </div>
           <div className="about__terminal">
-            <div className="terminal">
-              <div className="terminal__header">
-                <span className="terminal__dot terminal__dot--red" />
-                <span className="terminal__dot terminal__dot--yellow" />
-                <span className="terminal__dot terminal__dot--green" />
-                <span className="terminal__title">dom@dev:~$</span>
-              </div>
-              <div className="terminal__body">
-                <p><span className="terminal__prompt">$</span> whoami</p>
-                <p className="terminal__output">Dom the Developer</p>
-                <p><span className="terminal__prompt">$</span> cat passion.txt</p>
-                <p className="terminal__output">Building things that matter.</p>
-                <p><span className="terminal__prompt">$</span> echo $STACK</p>
-                <p className="terminal__output">React | Node | Python | Cloud</p>
-                <p><span className="terminal__prompt">$</span> <span className="terminal__cursor">_</span></p>
-              </div>
-            </div>
+            <InteractiveTerminal />
           </div>
         </div>
       </div>

@@ -3,7 +3,10 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
 import Contact from './components/Contact';
+import Arcade from './components/Arcade';
+import Starfield from './components/Starfield';
 import ParticleField from './components/ParticleField';
+import ClickSpark from './components/ClickSpark';
 import Navbar from './components/Navbar';
 import './App.css';
 
@@ -19,10 +22,13 @@ function App() {
   return (
     <div className="App">
       <ParticleField />
+      <ClickSpark />
       <Navbar />
       <Hero scrollY={scrollY} />
       <About />
       <Projects />
+      <Arcade />
+      <Starfield />
       <Contact />
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
