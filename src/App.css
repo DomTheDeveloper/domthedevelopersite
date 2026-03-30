@@ -840,6 +840,95 @@
 
 .typing-race__wpm { color: var(--accent); font-weight: 700; font-size: 1rem; }
 
+/* ========== MEMORY MATCH ========== */
+.memory { width: 100%; max-width: 420px; }
+.memory__info {
+  display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);
+}
+.memory__grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.memory__card {
+  aspect-ratio: 1; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg-primary); cursor: pointer; position: relative;
+  font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; overflow: hidden;
+}
+.memory__card:hover { border-color: rgba(100, 200, 255, 0.3); }
+.memory__card-front {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; opacity: 0; transition: opacity 0.3s;
+}
+.memory__card-back {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--text-dim); font-family: var(--font-mono);
+  font-size: 1.2rem; transition: opacity 0.3s;
+}
+.memory__card--flipped .memory__card-front { opacity: 1; }
+.memory__card--flipped .memory__card-back { opacity: 0; }
+.memory__card--matched {
+  border-color: rgba(40, 200, 64, 0.3);
+  background: rgba(40, 200, 64, 0.05);
+}
+
+/* ========== 2048 ========== */
+.game2048 { width: 100%; max-width: 360px; }
+.game2048__header {
+  display: flex; gap: 1rem; align-items: center; margin-bottom: 0.8rem;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);
+}
+.game2048__grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  background: rgba(100, 200, 255, 0.04); padding: 6px; border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.game2048__tile {
+  aspect-ratio: 1; border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; font-family: var(--font-mono); font-weight: 700;
+  transition: all 0.15s; border: 1px solid rgba(100, 200, 255, 0.06);
+}
+.game2048__tile--filled { border-color: rgba(100, 200, 255, 0.1); }
+.game2048__hint {
+  text-align: center; color: var(--text-dim); font-family: var(--font-mono);
+  font-size: 0.7rem; margin-top: 0.5rem;
+}
+
+/* ========== MINESWEEPER ========== */
+.minesweeper { width: 100%; max-width: 360px; }
+.minesweeper__header {
+  display: flex; gap: 1rem; align-items: center; margin-bottom: 0.8rem;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);
+}
+.minesweeper__grid {
+  display: grid; gap: 2px; background: rgba(100, 200, 255, 0.04);
+  padding: 4px; border-radius: 8px; border: 1px solid var(--border);
+}
+.minesweeper__cell {
+  aspect-ratio: 1; background: var(--bg-card); border: 1px solid rgba(100, 200, 255, 0.08);
+  border-radius: 3px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 0.75rem; font-family: var(--font-mono);
+  font-weight: 700; transition: all 0.15s;
+}
+.minesweeper__cell:hover { background: rgba(100, 200, 255, 0.06); }
+.minesweeper__cell--revealed { background: var(--bg-primary); cursor: default; }
+.minesweeper__cell--mine { background: rgba(255, 107, 107, 0.1); }
+
+/* ========== REACTION TEST ========== */
+.reaction {
+  width: 100%; max-width: 500px; min-height: 250px;
+  border-radius: 8px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: background 0.3s;
+  user-select: none;
+}
+.reaction__content { text-align: center; padding: 2rem; }
+.reaction__title { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.reaction__sub { color: var(--text-secondary); font-size: 0.85rem; }
+.reaction__stats {
+  display: flex; gap: 1.5rem; justify-content: center; margin-top: 1rem;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);
+}
+
 /* ========== CONSTELLATIONS ========== */
 
 .constellation-wrapper {

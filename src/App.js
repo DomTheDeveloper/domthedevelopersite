@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
+import Arcade from './components/Arcade';
 import TechZone from './components/TechZone';
 import Contact from './components/Contact';
 import ParticleField from './components/ParticleField';
@@ -26,6 +27,7 @@ function App() {
       <Hero scrollY={scrollY} />
       <About />
       <Projects />
+      <Arcade />
       <TechZone />
       <Contact />
       <footer className="footer">

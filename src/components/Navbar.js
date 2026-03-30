@@ -13,6 +13,7 @@ const Navbar = () => {
   const links = [
     { label: 'About', href: 'about' },
     { label: 'Projects', href: 'projects' },
+    { label: 'Arcade', href: 'arcade' },
     { label: 'Tech Zone', href: 'techzone' },
     { label: 'Contact', href: 'contact' },
   ];

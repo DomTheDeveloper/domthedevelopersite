@@ -17,7 +17,7 @@ const Contact = () => {
     <section id="contact" className={`section contact ${visible ? 'section--visible' : ''}`} ref={ref}>
       <div className="section__inner">
         <h2 className="section__title">
-          <span className="section__title-tag">04.</span> Get In Touch
+          <span className="section__title-tag">05.</span> Get In Touch
         </h2>
         <div className="contact__content">
           <p className="contact__text">
