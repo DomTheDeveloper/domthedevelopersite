@@ -5,6 +5,7 @@ const FlappyRocket = () => {
   const gameRef = useRef({});
   const [started, setStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const startedRef = useRef(false);
 
   const W = 300, H = 400;
 
@@ -25,7 +26,7 @@ const FlappyRocket = () => {
     ];
   }, []);
 
-  const start = useCallback(() => { reset(); setStarted(true); setGameOver(false); }, [reset]);
+  const start = useCallback(() => { reset(); startedRef.current = true; setStarted(true); setGameOver(false); }, [reset]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -36,7 +37,7 @@ const FlappyRocket = () => {
     const flap = (fromTouch) => {
       if (fromTouch) lastTouchTime = Date.now();
       const g = gameRef.current;
-      if (!started || !g.running) return;
+      if (!startedRef.current || !g.running) return;
       g.bird.vy = -5.2;
     };
 
@@ -52,7 +53,7 @@ const FlappyRocket = () => {
       ctx.fillStyle = '#060a14';
       ctx.fillRect(0, 0, W, H);
 
-      if (!started) {
+      if (!startedRef.current) {
         // Draw ambient stars on start screen
         for (let i = 0; i < 30; i++) {
           const sx = (i * 137.5 + 50) % W;
@@ -256,7 +257,7 @@ const FlappyRocket = () => {
       ctx.fillText(g.score.toString(), W / 2, 30);
       ctx.restore();
 
-      if (!g.running && started) {
+      if (!g.running && startedRef.current) {
         ctx.fillStyle = 'rgba(6,10,20,0.75)'; ctx.fillRect(0, 0, W, H);
         ctx.save(); ctx.shadowColor = '#ff6b6b'; ctx.shadowBlur = 15;
         ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 22px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
@@ -276,7 +277,8 @@ const FlappyRocket = () => {
       canvas.removeEventListener('click', handleClick);
       canvas.removeEventListener('touchstart', handleTouch);
     };
-  }, [started, start]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 300 }}>
