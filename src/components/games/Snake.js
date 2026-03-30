@@ -60,12 +60,12 @@ const Snake = () => {
     };
     const handleTouchEnd = (e) => {
       if (!touchStart) return;
+      const dx = e.changedTouches[0].clientX - touchStart.x;
+      const dy = e.changedTouches[0].clientY - touchStart.y;
+      if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // ignore taps
       if (!started) { start(); return; }
       const g = gameRef.current;
       if (!g.running) { start(); return; }
-      const dx = e.changedTouches[0].clientX - touchStart.x;
-      const dy = e.changedTouches[0].clientY - touchStart.y;
-      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
       let nd;
       if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
       else nd = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
@@ -73,7 +73,10 @@ const Snake = () => {
     };
 
     window.addEventListener('keydown', handleKey);
-    canvas.addEventListener('click', () => { if (!started) start(); });
+    canvas.addEventListener('click', () => {
+      if (!started) start();
+      else if (gameRef.current && !gameRef.current.running) start();
+    });
     canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
     canvas.addEventListener('touchend', handleTouchEnd);
 
@@ -125,7 +128,7 @@ const Snake = () => {
         ctx.fillText('SNAKE', W / 2, H / 2 - 20);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Tap or use arrow keys to play', W / 2, H / 2 + 10);
+        ctx.fillText('Swipe to play', W / 2, H / 2 + 10);
         return;
       }
 
@@ -167,7 +170,7 @@ const Snake = () => {
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
         ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 15);
-        ctx.fillText('Tap or press any key to retry', W / 2, H / 2 + 35);
+        ctx.fillText('Swipe to retry', W / 2, H / 2 + 35);
       }
     };
 

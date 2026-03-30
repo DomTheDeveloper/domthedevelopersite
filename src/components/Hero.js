@@ -30,13 +30,13 @@ const Hero = ({ scrollY }) => {
           </h1>
         </div>
         <p className="hero__subtitle">
-          <span className="hero__tag">&lt;code&gt;</span>
+          <span className="hero__tag">&lt;code&gt;</span><br />
           Software Engineer <br className="hero__mobile-br" />&amp; Computer Scientist
-          <span className="hero__tag">&lt;/code&gt;</span>
+          <br /><span className="hero__tag">&lt;/code&gt;</span>
         </p>
         <div className="hero__cta-row">
-          <a href="#projects" className="hero__cta">View My Work</a>
-          <a href="#contact" className="hero__cta hero__cta--outline">Get In Touch</a>
+          <a href="#contact" className="hero__cta">Let's Chat</a>
+          <a href="#projects" className="hero__cta hero__cta--outline">Portfolio</a>
         </div>
         <div className="hero__scroll-indicator">
           <div className="hero__scroll-mouse">

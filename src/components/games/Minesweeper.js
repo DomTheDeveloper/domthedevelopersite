@@ -118,7 +118,7 @@ const MinesweeperGame = () => {
         {won && <span style={{ color: '#28c840' }}>You Win!</span>}
         {gameOver && <span style={{ color: '#ff6b6b' }}>Boom!</span>}
       </div>
-      <div className="minesweeper__grid" style={{ gridTemplateColumns: `repeat(${SIZE}, 1fr)` }}>
+      <div className="minesweeper__grid" style={{ gridTemplateColumns: `repeat(${SIZE}, 1fr)`, userSelect: 'none', WebkitUserSelect: 'none' }}>
         {board.map((v, i) => (
           <button
             key={i}
@@ -133,7 +133,9 @@ const MinesweeperGame = () => {
           </button>
         ))}
       </div>
-      <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem', marginTop: '0.5rem' }}>Click to reveal. Right-click or long-press to flag.</p>
+      <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+        {'ontouchstart' in window ? 'Tap to reveal. Long-press to flag.' : 'Click to reveal. Right-click to flag.'}
+      </p>
     </div>
   );
 };

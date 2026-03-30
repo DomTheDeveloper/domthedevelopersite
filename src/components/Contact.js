@@ -24,7 +24,7 @@ const Contact = () => {
             I'm always open to new opportunities, collaborations, and interesting projects.
             Whether you have a question or just want to say hi, my inbox is always open.
           </p>
-          <a href="mailto:hello@domthedeveloper.com" className="contact__cta">
+          <a href="mailto:dom@domthedeveloper.com" className="contact__cta">
             <span className="contact__cta-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />

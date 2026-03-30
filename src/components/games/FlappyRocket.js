@@ -31,17 +31,20 @@ const FlappyRocket = () => {
     const ctx = canvas.getContext('2d');
     let animId;
 
-    const flap = () => {
+    let lastTouchTime = 0;
+    const flap = (fromTouch) => {
+      if (fromTouch) lastTouchTime = Date.now();
       if (!started) { start(); return; }
       const g = gameRef.current;
       if (!g.running) { start(); return; }
       g.bird.vy = -5.2;
     };
 
-    const handleKey = (e) => { if (e.code === 'Space') { e.preventDefault(); flap(); } };
-    const handleTouch = (e) => { e.preventDefault(); flap(); };
+    const handleKey = (e) => { if (e.code === 'Space') { e.preventDefault(); flap(false); } };
+    const handleTouch = (e) => { e.preventDefault(); flap(true); };
+    const handleClick = () => { if (Date.now() - lastTouchTime > 300) flap(false); };
     window.addEventListener('keydown', handleKey);
-    canvas.addEventListener('click', flap);
+    canvas.addEventListener('click', handleClick);
     canvas.addEventListener('touchstart', handleTouch, { passive: false });
 
     const draw = () => {
@@ -270,7 +273,7 @@ const FlappyRocket = () => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('keydown', handleKey);
-      canvas.removeEventListener('click', flap);
+      canvas.removeEventListener('click', handleClick);
       canvas.removeEventListener('touchstart', handleTouch);
     };
   }, [started, start]);

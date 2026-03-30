@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const ICONS = ['◆', '★', '▲', '●', '■', '♦', '◉', '✦'];
+const ICONS = [
+  { symbol: '⬡', color: '#64c8ff' },
+  { symbol: '✶', color: '#ff6b6b' },
+  { symbol: '△', color: '#28c840' },
+  { symbol: '◎', color: '#febc2e' },
+  { symbol: '⬟', color: '#c084fc' },
+  { symbol: '✦', color: '#ff79c6' },
+  { symbol: '⊞', color: '#48d1cc' },
+  { symbol: '⟐', color: '#e4eaf5' },
+];
 
 const MemoryMatch = () => {
   const [cards, setCards] = useState([]);
@@ -11,7 +20,7 @@ const MemoryMatch = () => {
 
   const initGame = useCallback(() => {
     const pairs = [...ICONS, ...ICONS];
-    const shuffled = pairs.sort(() => Math.random() - 0.5).map((icon, i) => ({ id: i, icon }));
+    const shuffled = pairs.sort(() => Math.random() - 0.5).map((item, i) => ({ id: i, symbol: item.symbol, color: item.color }));
     setCards(shuffled);
     setFlipped([]);
     setMatched([]);
@@ -23,7 +32,7 @@ const MemoryMatch = () => {
     if (flipped.length === 2) {
       setMoves(m => m + 1);
       const [a, b] = flipped;
-      if (cards[a].icon === cards[b].icon) {
+      if (cards[a].symbol === cards[b].symbol) {
         setTimeout(() => {
           setMatched(prev => [...prev, a, b]);
           setFlipped([]);
@@ -54,7 +63,7 @@ const MemoryMatch = () => {
     <div className="memory">
       <div className="memory__info">
         <span>Moves: {moves}</span>
-        <span>Matched: {matched.length / 2}/{ICONS.length}</span>
+        <span>Matched: {matched.length / 2}/8</span>
         {won && <button className="constellation-clear" onClick={initGame}>Play Again</button>}
       </div>
       <div className="memory__grid">
@@ -66,7 +75,7 @@ const MemoryMatch = () => {
               className={`memory__card ${isFlipped ? 'memory__card--flipped' : ''} ${matched.includes(i) ? 'memory__card--matched' : ''}`}
               onClick={() => handleClick(i)}
             >
-              <span className="memory__card-front" style={{ color: '#64c8ff', fontSize: '1.4rem' }}>{card.icon}</span>
+              <span className="memory__card-front" style={{ color: card.color, fontSize: '1.4rem' }}>{card.symbol}</span>
               <span className="memory__card-back">?</span>
             </button>
           );
