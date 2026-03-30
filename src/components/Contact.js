@@ -31,7 +31,7 @@ const Contact = () => {
                 <polyline points="22,6 12,13 2,6" />
               </svg>
             </span>
-            Say Hello
+            Say Hi
           </a>
           <div className="contact__socials">
             <a href="https://github.com/domthedeveloper" target="_blank" rel="noopener noreferrer" className="contact__social" aria-label="GitHub">

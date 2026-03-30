@@ -22,7 +22,7 @@ const About = () => {
         <div className="about__grid">
           <div className="about__text">
             <p>
-              Hey there! I'm <strong>Dom</strong> — a passionate full-stack developer who loves
+              Hi there! I'm <strong>Dom</strong> — a passionate full-stack developer who loves
               turning complex problems into elegant, performant solutions. I thrive at the
               intersection of design and engineering, building experiences that are both
               beautiful and blazing fast.
