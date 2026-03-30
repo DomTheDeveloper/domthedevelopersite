@@ -56,7 +56,7 @@ const Projects = () => {
     <section id="projects" className={`section projects ${visible ? 'section--visible' : ''}`} ref={ref}>
       <div className="section__inner">
         <h2 className="section__title">
-          <span className="section__title-tag">03.</span> Projects
+          <span className="section__title-tag">02.</span> Selected Projects
         </h2>
         <div className="projects__grid">
           {projectsData.map((project, i) => (
