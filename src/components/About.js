@@ -33,20 +33,6 @@ const About = () => {
               you'll find me exploring new frameworks, contributing to open source, or
               diving deep into system design.
             </p>
-            <div className="about__stats">
-              <div className="about__stat">
-                <span className="about__stat-number">5+</span>
-                <span className="about__stat-label">Years Experience</span>
-              </div>
-              <div className="about__stat">
-                <span className="about__stat-number">30+</span>
-                <span className="about__stat-label">Projects Built</span>
-              </div>
-              <div className="about__stat">
-                <span className="about__stat-number">10+</span>
-                <span className="about__stat-label">Technologies</span>
-              </div>
-            </div>
           </div>
           <div className="about__terminal">
             <div className="terminal">
