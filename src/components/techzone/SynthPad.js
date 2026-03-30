@@ -46,9 +46,10 @@ const SynthPad = () => {
           <button
             key={note}
             className={`synth-pad__key ${active === i ? 'synth-pad__key--active' : ''}`}
-            style={{ '--pad-color': PAD_COLORS[i] }}
+            style={{ '--pad-color': PAD_COLORS[i], touchAction: 'none' }}
             onClick={() => playNote(note, i)}
             onMouseEnter={(e) => { if (e.buttons === 1) playNote(note, i); }}
+            onTouchStart={(e) => { e.preventDefault(); playNote(note, i); }}
           >
             <span className="synth-pad__note">{note}</span>
             {ripples.filter(r => r.index === i).map(r => (
@@ -57,7 +58,7 @@ const SynthPad = () => {
           </button>
         ))}
       </div>
-      <p className="synth-pad__hint">Click pads to play. Drag across for melody.</p>
+      <p className="synth-pad__hint">Tap or click pads to play.</p>
     </div>
   );
 };

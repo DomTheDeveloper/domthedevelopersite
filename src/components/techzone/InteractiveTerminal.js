@@ -94,7 +94,7 @@ const InteractiveTerminal = () => {
   };
 
   return (
-    <div className="terminal terminal--interactive" onClick={() => inputRef.current?.focus()}>
+    <div className="terminal terminal--interactive" onClick={() => inputRef.current?.focus()} style={{ overflow: 'hidden', maxWidth: '100%' }}>
       <div className="terminal__header">
         <span className="terminal__dot terminal__dot--red" />
         <span className="terminal__dot terminal__dot--yellow" />

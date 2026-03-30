@@ -53,8 +53,29 @@ const Snake = () => {
       }
     };
 
+    // touch swipe
+    let touchStart = null;
+    const handleTouchStart = (e) => {
+      touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+    const handleTouchEnd = (e) => {
+      if (!touchStart) return;
+      if (!started) { start(); return; }
+      const g = gameRef.current;
+      if (!g.running) { start(); return; }
+      const dx = e.changedTouches[0].clientX - touchStart.x;
+      const dy = e.changedTouches[0].clientY - touchStart.y;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      let nd;
+      if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+      else nd = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+      if (nd && !(nd.x === -g.dir.x && nd.y === -g.dir.y)) g.nextDir = nd;
+    };
+
     window.addEventListener('keydown', handleKey);
     canvas.addEventListener('click', () => { if (!started) start(); });
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchend', handleTouchEnd);
 
     const tick = () => {
       const g = gameRef.current;
@@ -104,7 +125,7 @@ const Snake = () => {
         ctx.fillText('SNAKE', W / 2, H / 2 - 20);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Click to start. Arrow keys or WASD.', W / 2, H / 2 + 10);
+        ctx.fillText('Tap or use arrow keys to play', W / 2, H / 2 + 10);
         return;
       }
 
@@ -146,7 +167,7 @@ const Snake = () => {
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
         ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 15);
-        ctx.fillText('Press any key to retry', W / 2, H / 2 + 35);
+        ctx.fillText('Tap or press any key to retry', W / 2, H / 2 + 35);
       }
     };
 
@@ -156,12 +177,14 @@ const Snake = () => {
     return () => {
       clearInterval(interval);
       window.removeEventListener('keydown', handleKey);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchend', handleTouchEnd);
     };
   }, [started, start]);
 
   return (
     <canvas ref={canvasRef} width={W} height={H}
-      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block' }}
+      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
     />
   );
 };

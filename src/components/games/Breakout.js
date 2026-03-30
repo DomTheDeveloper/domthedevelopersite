@@ -46,6 +46,7 @@ const Breakout = () => {
     canvas.addEventListener('mousemove', handleMove);
     canvas.addEventListener('touchmove', handleTouch, { passive: false });
     canvas.addEventListener('click', () => { if (!started) start(); });
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!started) start(); }, { passive: false });
 
     const draw = () => {
       const g = gameRef.current;
@@ -59,7 +60,7 @@ const Breakout = () => {
         ctx.fillText('BREAKOUT', W / 2, H / 2 - 15);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Click to start. Move mouse to play.', W / 2, H / 2 + 15);
+        ctx.fillText('Tap or click to start', W / 2, H / 2 + 15);
         animId = requestAnimationFrame(draw);
         return;
       }
@@ -151,7 +152,7 @@ const Breakout = () => {
     return () => { cancelAnimationFrame(animId); canvas.removeEventListener('mousemove', handleMove); canvas.removeEventListener('touchmove', handleTouch); };
   }, [started, start]);
 
-  return <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block' }} />;
+  return <canvas ref={canvasRef} width={W} height={H} style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }} />;
 };
 
 export default Breakout;

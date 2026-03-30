@@ -11,17 +11,19 @@ const Game2048 = lazy(() => import('./games/Game2048'));
 const Minesweeper = lazy(() => import('./games/Minesweeper'));
 const ReactionTime = lazy(() => import('./games/ReactionTime'));
 
+const isMobile = () => /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+
 const games = [
-  { id: 'space', name: 'Space Runner', icon: '🚀', desc: 'Dodge asteroids in deep space. Click or Space to jump.', component: SpaceRunner },
-  { id: 'pong', name: 'Neon Pong', icon: '🏓', desc: 'Classic pong with neon glow. Move your mouse to play.', component: Pong },
-  { id: 'snake', name: 'Snake', icon: '🐍', desc: 'Eat, grow, survive. Arrow keys or WASD.', component: Snake },
-  { id: 'breakout', name: 'Breakout', icon: '🧱', desc: 'Break all the bricks. Move mouse to control the paddle.', component: Breakout },
-  { id: 'shooter', name: 'Asteroid Shooter', icon: '🔫', desc: 'Shoot down asteroids before they hit you. Click to fire.', component: AsteroidShooter },
-  { id: 'memory', name: 'Memory Match', icon: '🧠', desc: 'Match all pairs with the fewest moves.', component: MemoryMatch },
-  { id: 'flappy', name: 'Flappy Rocket', icon: '🪂', desc: 'Navigate through gaps. Click or Space to fly.', component: FlappyRocket },
-  { id: '2048', name: '2048', icon: '🔢', desc: 'Slide and merge tiles to reach 2048. Arrow keys or WASD.', component: Game2048 },
-  { id: 'mines', name: 'Minesweeper', icon: '💣', desc: 'Clear the board without hitting mines. Right-click to flag.', component: Minesweeper },
-  { id: 'reaction', name: 'Reaction Test', icon: '⚡', desc: 'Test your reaction time. Click when the screen turns green.', component: ReactionTime },
+  { id: 'space', name: 'Space Runner', icon: '>', mDesc: 'Tap to jump over asteroids.', dDesc: 'Press Space or click to jump over asteroids.', component: SpaceRunner },
+  { id: 'pong', name: 'Neon Pong', icon: '|', mDesc: 'Drag to move your paddle.', dDesc: 'Move your mouse to control the paddle.', component: Pong },
+  { id: 'snake', name: 'Snake', icon: '~', mDesc: 'Swipe to change direction.', dDesc: 'Arrow keys or WASD to move.', component: Snake },
+  { id: 'breakout', name: 'Breakout', icon: '#', mDesc: 'Drag to move the paddle.', dDesc: 'Move your mouse to control the paddle.', component: Breakout },
+  { id: 'shooter', name: 'Asteroids', icon: '^', mDesc: 'Drag to aim. Tap to shoot.', dDesc: 'Move mouse to aim. Click to fire.', component: AsteroidShooter },
+  { id: 'memory', name: 'Memory', icon: '?', mDesc: 'Tap cards to flip and match pairs.', dDesc: 'Click cards to flip and match pairs.', component: MemoryMatch },
+  { id: 'flappy', name: 'Flappy Rocket', icon: '/', mDesc: 'Tap to fly through gaps.', dDesc: 'Click or press Space to fly.', component: FlappyRocket },
+  { id: '2048', name: '2048', icon: '+', mDesc: 'Swipe to slide and merge tiles.', dDesc: 'Arrow keys or WASD to slide tiles.', component: Game2048 },
+  { id: 'mines', name: 'Minesweeper', icon: '*', mDesc: 'Tap to reveal. Long-press to flag.', dDesc: 'Click to reveal. Right-click to flag.', component: Minesweeper },
+  { id: 'reaction', name: 'Reaction', icon: '!', mDesc: 'Tap when the screen turns green.', dDesc: 'Click when the screen turns green.', component: ReactionTime },
 ];
 
 const Loader = () => (
@@ -34,6 +36,14 @@ const Arcade = () => {
   const ref = useRef();
   const [visible, setVisible] = useState(false);
   const [activeId, setActiveId] = useState('space');
+  const [mobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    setMobile(isMobile());
+    const handleResize = () => setMobile(isMobile());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -76,7 +86,7 @@ const Arcade = () => {
               {ActiveComponent && <ActiveComponent key={activeId} />}
             </Suspense>
           </div>
-          <p className="techzone__desc">{active?.desc}</p>
+          <p className="techzone__desc">{mobile ? active?.mDesc : active?.dDesc}</p>
         </div>
       </div>
     </section>

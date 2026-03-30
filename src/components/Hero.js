@@ -31,7 +31,7 @@ const Hero = ({ scrollY }) => {
         </div>
         <p className="hero__subtitle">
           <span className="hero__tag">&lt;code&gt;</span>
-          Software Engineer & Computer Scientist
+          Software Engineer <br className="hero__mobile-br" />&amp; Computer Scientist
           <span className="hero__tag">&lt;/code&gt;</span>
         </p>
         <div className="hero__cta-row">

@@ -137,6 +137,11 @@
   font-weight: 300;
 }
 
+.hero__mobile-br { display: none; }
+@media (max-width: 480px) {
+  .hero__mobile-br { display: block; }
+}
+
 .hero__tag {
   font-family: var(--font-mono);
   color: var(--accent-dim);
@@ -408,6 +413,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
 }
 
 .terminal__input {
@@ -419,7 +425,10 @@
   font-size: 0.85rem;
   flex: 1;
   caret-color: var(--accent);
+  min-width: 0;
+  max-width: 100%;
 }
+
 
 /* ========== TECH ZONE ========== */
 .techzone__subtitle {
@@ -706,6 +715,18 @@
   border-radius: 4px; cursor: pointer; transition: all 0.2s;
 }
 .pixel-art__clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pixel-art__hex-row { display: flex; align-items: center; gap: 4px; }
+.pixel-art__hex-input {
+  font-family: var(--font-mono); font-size: 0.7rem; width: 70px; padding: 0.2rem 0.4rem;
+  background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 4px; outline: none;
+}
+.pixel-art__hex-input:focus { border-color: var(--accent); }
+.pixel-art__hex-btn {
+  width: 24px; height: 24px; border-radius: 4px; border: 2px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.pixel-art__hex-btn:hover { border-color: #fff; transform: scale(1.1); }
 
 .pixel-art__grid {
   display: grid;

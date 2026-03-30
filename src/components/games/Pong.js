@@ -53,6 +53,7 @@ const Pong = () => {
     canvas.addEventListener('mousemove', handleMove);
     canvas.addEventListener('touchmove', handleTouch, { passive: false });
     canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (!started) startGame(); }, { passive: false });
 
     const draw = () => {
       const g = gameRef.current;
@@ -71,7 +72,7 @@ const Pong = () => {
         ctx.fillText('NEON PONG', 200, 80);
         ctx.fillStyle = '#8892a8';
         ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Click to start, move mouse to play', 200, 110);
+        ctx.fillText('Tap or click to start', 200, 110);
         animId = requestAnimationFrame(draw);
         return;
       }
@@ -207,7 +208,7 @@ const Pong = () => {
       ref={canvasRef}
       width={400}
       height={200}
-      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block' }}
+      style={{ width: '100%', maxWidth: 400, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
     />
   );
 };

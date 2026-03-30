@@ -105,17 +105,31 @@ const Game2048 = () => {
 
   // swipe support
   const touchRef = React.useRef(null);
-  const handleTouchStart = (e) => { touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
+  const containerRef = React.useRef(null);
+
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
   const handleTouchEnd = (e) => {
     if (!touchRef.current) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     const dy = e.changedTouches[0].clientY - touchRef.current.y;
+    const MIN_SWIPE = 30;
+    if (Math.abs(dx) < MIN_SWIPE && Math.abs(dy) < MIN_SWIPE) return;
     if (Math.abs(dx) > Math.abs(dy)) handleMove(dx > 0 ? 'right' : 'left');
     else handleMove(dy > 0 ? 'down' : 'up');
   };
 
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('touchstart', handleTouchStart, { passive: false });
+    return () => el.removeEventListener('touchstart', handleTouchStart);
+  });
+
   return (
-    <div className="game2048" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="game2048" ref={containerRef} onTouchEnd={handleTouchEnd} style={{ touchAction: 'none' }}>
       <div className="game2048__header">
         <span>Score: {score}</span>
         {best > 0 && <span>Best: {best}</span>}

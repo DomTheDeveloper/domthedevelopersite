@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const ICONS = ['⚡', '🚀', '💎', '🔮', '🎯', '⭐', '🔥', '🌊'];
+const ICONS = ['◆', '★', '▲', '●', '■', '♦', '◉', '✦'];
 
 const MemoryMatch = () => {
   const [cards, setCards] = useState([]);
@@ -66,7 +66,7 @@ const MemoryMatch = () => {
               className={`memory__card ${isFlipped ? 'memory__card--flipped' : ''} ${matched.includes(i) ? 'memory__card--matched' : ''}`}
               onClick={() => handleClick(i)}
             >
-              <span className="memory__card-front">{card.icon}</span>
+              <span className="memory__card-front" style={{ color: '#64c8ff', fontSize: '1.4rem' }}>{card.icon}</span>
               <span className="memory__card-back">?</span>
             </button>
           );

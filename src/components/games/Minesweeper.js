@@ -79,6 +79,33 @@ const MinesweeperGame = () => {
     setFlagged(f);
   };
 
+  // Long-press to flag on mobile
+  const longPressTimer = React.useRef(null);
+  const longPressTriggered = React.useRef(false);
+
+  const handleCellTouchStart = (idx) => {
+    longPressTriggered.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      if (!gameOver && !won && !revealed[idx]) {
+        const f = [...flagged];
+        f[idx] = !f[idx];
+        setFlagged(f);
+      }
+    }, 500);
+  };
+
+  const handleCellTouchEnd = (idx) => {
+    clearTimeout(longPressTimer.current);
+    if (!longPressTriggered.current) {
+      reveal(idx);
+    }
+  };
+
+  const handleCellTouchMove = () => {
+    clearTimeout(longPressTimer.current);
+  };
+
   useEffect(() => { init(); }, [init]);
 
   const numColors = ['', '#64c8ff', '#28c840', '#ff6b6b', '#c084fc', '#febc2e', '#48d1cc', '#e4eaf5', '#8892a8'];
@@ -98,12 +125,15 @@ const MinesweeperGame = () => {
             className={`minesweeper__cell ${revealed[i] ? 'minesweeper__cell--revealed' : ''} ${revealed[i] && v === -1 ? 'minesweeper__cell--mine' : ''}`}
             onClick={() => reveal(i)}
             onContextMenu={(e) => flag(e, i)}
+            onTouchStart={() => handleCellTouchStart(i)}
+            onTouchEnd={(e) => { e.preventDefault(); handleCellTouchEnd(i); }}
+            onTouchMove={handleCellTouchMove}
           >
-            {flagged[i] && !revealed[i] ? '🚩' : revealed[i] ? (v === -1 ? '💥' : (v > 0 ? <span style={{ color: numColors[v] }}>{v}</span> : '')) : ''}
+            {flagged[i] && !revealed[i] ? <span style={{ color: '#ff6b6b' }}>⚑</span> : revealed[i] ? (v === -1 ? <span style={{ color: '#ff6b6b' }}>✕</span> : (v > 0 ? <span style={{ color: numColors[v] }}>{v}</span> : '')) : ''}
           </button>
         ))}
       </div>
-      <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem', marginTop: '0.5rem' }}>Click to reveal. Right-click to flag.</p>
+      <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem', marginTop: '0.5rem' }}>Click to reveal. Right-click or long-press to flag.</p>
     </div>
   );
 };
