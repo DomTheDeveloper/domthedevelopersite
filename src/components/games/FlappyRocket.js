@@ -6,214 +6,249 @@ const FlappyRocket = () => {
   const canvasRef = useRef(null);
   const stateRef = useRef({ phase: 'idle', game: null });
   const animRef = useRef(null);
-  const [, setRenderKey] = useState(0); // force re-render for button visibility
+  const [, setTick] = useState(0);
 
   const initGame = () => {
     stateRef.current.game = {
       bird: { y: H / 2, vy: 0 },
       pipes: [], frame: 0, score: 0,
-      scorePopups: [], particles: [],
-      starLayers: [
-        Array.from({ length: 40 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 0.4 + Math.random() * 0.4, speed: 0.2 })),
-        Array.from({ length: 25 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 0.5, speed: 0.6 })),
-        Array.from({ length: 12 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 1.0 + Math.random() * 0.6, speed: 1.2 })),
-      ],
+      particles: [],
+      stars: Array.from({ length: 50 }, () => ({
+        x: Math.random() * W, y: Math.random() * H,
+        s: 0.3 + Math.random() * 0.8, speed: 0.2 + Math.random() * 1.0,
+      })),
     };
     stateRef.current.phase = 'playing';
-    setRenderKey(k => k + 1);
+    setTick(k => k + 1);
   };
 
-  // Draw loop — runs once, reads everything from refs
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    const draw = () => {
-      const { phase, game: g } = stateRef.current;
-      ctx.fillStyle = '#060a14';
-      ctx.fillRect(0, 0, W, H);
-
-      if (phase === 'idle' || !g) {
-        for (let i = 0; i < 30; i++) {
-          const sx = (i * 137.5 + 50) % W, sy = (i * 73.3 + 20) % H;
-          ctx.beginPath(); ctx.arc(sx, sy, 0.7, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200,220,255,${0.2 + Math.sin(Date.now() * 0.002 + i) * 0.15})`; ctx.fill();
-        }
-        ctx.fillStyle = '#64c8ff'; ctx.font = '18px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
-        ctx.fillText('FLAPPY ROCKET', W / 2, H / 2 - 30);
-        ctx.save(); ctx.shadowColor = '#64c8ff'; ctx.shadowBlur = 15;
-        ctx.fillStyle = '#64c8ff'; ctx.beginPath();
-        ctx.moveTo(W / 2 + 15, H / 2 + 10); ctx.lineTo(W / 2 - 10, H / 2 + 2); ctx.lineTo(W / 2 - 10, H / 2 + 18);
-        ctx.closePath(); ctx.fill(); ctx.restore();
-        ctx.fillStyle = '#8892a8'; ctx.font = '11px "JetBrains Mono", monospace';
-        ctx.fillText('Press Start to play', W / 2, H / 2 + 45);
-        animRef.current = requestAnimationFrame(draw); return;
-      }
-
-      // Stars
-      const layerAlphas = [0.15, 0.3, 0.55];
-      g.starLayers.forEach((layer, li) => {
-        layer.forEach(s => {
-          s.x -= s.speed;
-          if (s.x < -2) { s.x = W + 2; s.y = Math.random() * H; }
-          ctx.beginPath(); ctx.arc(s.x, s.y, s.s * 0.7, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200,220,255,${layerAlphas[li]})`; ctx.fill();
-        });
-      });
-
-      if (phase === 'playing') {
-        g.frame++;
-        g.bird.vy += 0.26;
-        g.bird.vy = Math.max(-6, Math.min(g.bird.vy, 8));
-        g.bird.y += g.bird.vy;
-
-        if (g.frame % 90 === 0) {
-          g.pipes.push({ x: W, gapY: 65 + Math.random() * (H - 175), gap: 105, passed: false });
-        }
-        g.pipes.forEach(p => {
-          p.x -= 2;
-          if (!p.passed && p.x + 30 < 50) {
-            p.passed = true; g.score++;
-            g.scorePopups.push({ x: p.x + 15, y: p.gapY + p.gap / 2, text: '+1', life: 40, startLife: 40 });
-          }
-        });
-        g.pipes = g.pipes.filter(p => p.x > -40);
-
-        if (g.frame % 2 === 0) {
-          const spread = g.bird.vy < 0 ? 3 : 1.5;
-          for (let i = 0; i < 3; i++) {
-            g.particles.push({
-              x: 38 + (Math.random() - 0.5) * 4, y: g.bird.y + (Math.random() - 0.5) * 6,
-              vx: -1.5 - Math.random() * 1.5, vy: (Math.random() - 0.5) * spread,
-              life: 18 + Math.random() * 10, startLife: 28, type: g.bird.vy < 0 ? 'thrust' : 'idle',
-            });
-          }
-        }
-
-        let crashed = false;
-        if (g.bird.y < 0 || g.bird.y > H) crashed = true;
-        g.pipes.forEach(p => {
-          if (60 > p.x && 40 < p.x + 30) {
-            if (g.bird.y - 9 < p.gapY || g.bird.y + 9 > p.gapY + p.gap) crashed = true;
-          }
-        });
-        if (crashed) {
-          stateRef.current.phase = 'dead';
-          setRenderKey(k => k + 1);
-        }
-      }
-
-      // Draw particles
-      g.particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy; p.life--;
-        const t = p.life / p.startLife;
-        ctx.fillStyle = p.type === 'thrust'
-          ? `rgba(255,${Math.floor(100 + t * 120)},${Math.floor(30 + t * 20)},${t * 0.7})`
-          : `rgba(100,200,255,${t * 0.3})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, t * 2.5, 0, Math.PI * 2); ctx.fill();
-      });
-      g.particles = g.particles.filter(p => p.life > 0);
-
-      // Draw pipes
-      g.pipes.forEach(p => {
-        const grad = ctx.createLinearGradient(p.x, 0, p.x + 30, 0);
-        grad.addColorStop(0, 'rgba(30,80,120,0.35)'); grad.addColorStop(0.5, 'rgba(60,140,200,0.2)'); grad.addColorStop(1, 'rgba(30,80,120,0.35)');
-        ctx.fillStyle = grad; ctx.fillRect(p.x, 0, 30, p.gapY);
-        ctx.strokeStyle = 'rgba(100,200,255,0.4)'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x, 0, 30, p.gapY);
-        ctx.fillStyle = 'rgba(100,200,255,0.15)'; ctx.fillRect(p.x - 3, p.gapY - 6, 36, 6);
-        ctx.strokeStyle = 'rgba(100,200,255,0.5)'; ctx.strokeRect(p.x - 3, p.gapY - 6, 36, 6);
-        const bt = p.gapY + p.gap;
-        ctx.fillStyle = grad; ctx.fillRect(p.x, bt, 30, H - bt);
-        ctx.strokeStyle = 'rgba(100,200,255,0.4)'; ctx.lineWidth = 1.5; ctx.strokeRect(p.x, bt, 30, H - bt);
-        ctx.fillStyle = 'rgba(100,200,255,0.15)'; ctx.fillRect(p.x - 3, bt, 36, 6);
-        ctx.strokeStyle = 'rgba(100,200,255,0.5)'; ctx.strokeRect(p.x - 3, bt, 36, 6);
-      });
-
-      // Draw rocket
-      ctx.save(); ctx.shadowColor = '#64c8ff'; ctx.shadowBlur = 14;
-      ctx.fillStyle = '#64c8ff'; ctx.beginPath();
-      ctx.moveTo(62, g.bird.y); ctx.lineTo(44, g.bird.y - 9); ctx.lineTo(38, g.bird.y - 7);
-      ctx.lineTo(38, g.bird.y + 7); ctx.lineTo(44, g.bird.y + 9); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = 'rgba(200,240,255,0.8)';
-      ctx.beginPath(); ctx.arc(50, g.bird.y, 3, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(100,200,255,0.6)';
-      ctx.beginPath(); ctx.moveTo(40, g.bird.y - 8); ctx.lineTo(36, g.bird.y - 14); ctx.lineTo(38, g.bird.y - 6); ctx.closePath(); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(40, g.bird.y + 8); ctx.lineTo(36, g.bird.y + 14); ctx.lineTo(38, g.bird.y + 6); ctx.closePath(); ctx.fill();
-      if (g.bird.vy < 0) {
-        const fl = 8 + Math.random() * 8;
-        const fg = ctx.createLinearGradient(38, g.bird.y, 38 - fl, g.bird.y);
-        fg.addColorStop(0, 'rgba(255,200,80,0.9)'); fg.addColorStop(0.5, 'rgba(255,120,20,0.6)'); fg.addColorStop(1, 'rgba(255,60,20,0)');
-        ctx.fillStyle = fg; ctx.beginPath();
-        ctx.moveTo(38, g.bird.y - 5); ctx.lineTo(38 - fl, g.bird.y + (Math.random() - 0.5) * 3); ctx.lineTo(38, g.bird.y + 5);
-        ctx.closePath(); ctx.fill();
-      }
-      ctx.restore();
-
-      // Score popups
-      g.scorePopups.forEach(sp => {
-        sp.life--; const t = sp.life / sp.startLife;
-        ctx.save(); ctx.globalAlpha = t; ctx.fillStyle = '#64c8ff';
-        ctx.font = `bold ${12 + (1 - t) * 6}px "JetBrains Mono", monospace`; ctx.textAlign = 'center';
-        ctx.fillText(sp.text, sp.x, sp.y - (1 - t) * 25); ctx.restore();
-      });
-      g.scorePopups = g.scorePopups.filter(sp => sp.life > 0);
-
-      // Score
-      ctx.save(); ctx.shadowColor = '#64c8ff'; ctx.shadowBlur = 8;
-      ctx.fillStyle = 'rgba(100,200,255,0.9)'; ctx.font = 'bold 16px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
-      ctx.fillText(g.score.toString(), W / 2, 30); ctx.restore();
-
-      // Game over overlay
-      if (phase === 'dead') {
-        ctx.fillStyle = 'rgba(6,10,20,0.75)'; ctx.fillRect(0, 0, W, H);
-        ctx.save(); ctx.shadowColor = '#ff6b6b'; ctx.shadowBlur = 15;
-        ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 22px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
-        ctx.fillText('CRASH', W / 2, H / 2 - 15); ctx.restore();
-        ctx.fillStyle = '#c8d0e0'; ctx.font = '13px "JetBrains Mono", monospace';
-        ctx.fillText(`Score: ${g.score}`, W / 2, H / 2 + 12);
-      }
-
-      animRef.current = requestAnimationFrame(draw);
-    };
-
-    // Input — directly reads ref, no closures over React state
     const doFlap = () => {
-      const { phase, game: g } = stateRef.current;
-      if (phase !== 'playing' || !g) return;
-      g.bird.vy = -5.2;
+      const s = stateRef.current;
+      if (s.phase === 'playing' && s.game) {
+        s.game.bird.vy = -5;
+      }
     };
 
     const onKey = (e) => { if (e.code === 'Space') { e.preventDefault(); doFlap(); } };
     const onTouch = (e) => { e.preventDefault(); doFlap(); };
-    const onClick = () => doFlap();
+    const onClick = () => { doFlap(); };
 
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('touchstart', onTouch, { passive: false });
     canvas.addEventListener('click', onClick);
 
+    const draw = () => {
+      try {
+        const s = stateRef.current;
+        const g = s.game;
+        ctx.fillStyle = '#060a14';
+        ctx.fillRect(0, 0, W, H);
+
+        // Idle screen
+        if (s.phase === 'idle' || !g) {
+          ctx.fillStyle = '#64c8ff';
+          ctx.font = '18px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('FLAPPY ROCKET', W / 2, H / 2 - 20);
+          ctx.fillStyle = '#8892a8';
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillText('Press Start to play', W / 2, H / 2 + 15);
+          animRef.current = requestAnimationFrame(draw);
+          return;
+        }
+
+        // Background stars
+        for (let i = 0; i < g.stars.length; i++) {
+          const st = g.stars[i];
+          st.x -= st.speed;
+          if (st.x < 0) { st.x = W; st.y = Math.random() * H; }
+          ctx.beginPath();
+          ctx.arc(st.x, st.y, Math.max(0.3, st.s * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(200,220,255,0.3)';
+          ctx.fill();
+        }
+
+        // Physics
+        if (s.phase === 'playing') {
+          g.frame++;
+          g.bird.vy += 0.25;
+          if (g.bird.vy > 7) g.bird.vy = 7;
+          if (g.bird.vy < -5) g.bird.vy = -5;
+          g.bird.y += g.bird.vy;
+
+          // Spawn pipes
+          if (g.frame % 100 === 0) {
+            const gapY = 70 + Math.random() * (H - 200);
+            g.pipes.push({ x: W, gapY: gapY, gap: 110, passed: false });
+          }
+
+          // Move pipes
+          for (let i = g.pipes.length - 1; i >= 0; i--) {
+            const p = g.pipes[i];
+            p.x -= 2;
+            if (!p.passed && p.x + 30 < 50) {
+              p.passed = true;
+              g.score++;
+            }
+            if (p.x < -40) g.pipes.splice(i, 1);
+          }
+
+          // Trail
+          if (g.frame % 3 === 0) {
+            g.particles.push({
+              x: 36, y: g.bird.y,
+              vx: -1 - Math.random(), vy: (Math.random() - 0.5) * 2,
+              life: 15,
+            });
+          }
+
+          // Collision
+          let dead = false;
+          if (g.bird.y < 0 || g.bird.y > H) dead = true;
+          for (let i = 0; i < g.pipes.length; i++) {
+            const p = g.pipes[i];
+            if (60 > p.x && 40 < p.x + 30) {
+              if (g.bird.y - 8 < p.gapY || g.bird.y + 8 > p.gapY + p.gap) {
+                dead = true;
+              }
+            }
+          }
+          if (dead) {
+            s.phase = 'dead';
+            setTick(k => k + 1);
+          }
+        }
+
+        // Draw particles
+        for (let i = g.particles.length - 1; i >= 0; i--) {
+          const p = g.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life--;
+          if (p.life <= 0) { g.particles.splice(i, 1); continue; }
+          const alpha = p.life / 15;
+          const radius = Math.max(0.5, alpha * 2);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = g.bird.vy < 0
+            ? `rgba(255,180,50,${alpha * 0.6})`
+            : `rgba(100,200,255,${alpha * 0.3})`;
+          ctx.fill();
+        }
+
+        // Draw pipes
+        for (let i = 0; i < g.pipes.length; i++) {
+          const p = g.pipes[i];
+          // Top pipe
+          ctx.fillStyle = 'rgba(40,100,150,0.3)';
+          ctx.fillRect(p.x, 0, 30, p.gapY);
+          ctx.strokeStyle = 'rgba(100,200,255,0.4)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(p.x, 0, 30, p.gapY);
+          // Bottom pipe
+          const bt = p.gapY + p.gap;
+          ctx.fillStyle = 'rgba(40,100,150,0.3)';
+          ctx.fillRect(p.x, bt, 30, H - bt);
+          ctx.strokeStyle = 'rgba(100,200,255,0.4)';
+          ctx.strokeRect(p.x, bt, 30, H - bt);
+        }
+
+        // Draw rocket
+        const by = g.bird.y;
+        ctx.save();
+        ctx.shadowColor = '#64c8ff';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#64c8ff';
+        ctx.beginPath();
+        ctx.moveTo(62, by);
+        ctx.lineTo(44, by - 8);
+        ctx.lineTo(38, by - 6);
+        ctx.lineTo(38, by + 6);
+        ctx.lineTo(44, by + 8);
+        ctx.closePath();
+        ctx.fill();
+        // Window
+        ctx.fillStyle = 'rgba(200,240,255,0.8)';
+        ctx.beginPath();
+        ctx.arc(50, by, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Flame
+        if (g.bird.vy < 0) {
+          const fl = 6 + Math.random() * 6;
+          ctx.fillStyle = 'rgba(255,180,50,0.7)';
+          ctx.beginPath();
+          ctx.moveTo(38, by - 4);
+          ctx.lineTo(38 - fl, by);
+          ctx.lineTo(38, by + 4);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // Score
+        ctx.fillStyle = 'rgba(100,200,255,0.9)';
+        ctx.font = 'bold 16px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(g.score), W / 2, 28);
+
+        // Dead overlay
+        if (s.phase === 'dead') {
+          ctx.fillStyle = 'rgba(6,10,20,0.75)';
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = '#ff6b6b';
+          ctx.font = 'bold 22px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('CRASH', W / 2, H / 2 - 15);
+          ctx.fillStyle = '#c8d0e0';
+          ctx.font = '13px "JetBrains Mono", monospace';
+          ctx.fillText('Score: ' + g.score, W / 2, H / 2 + 12);
+        }
+      } catch (err) {
+        // Prevent draw loop from dying
+      }
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
     animRef.current = requestAnimationFrame(draw);
+
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('keydown', onKey);
       canvas.removeEventListener('touchstart', onTouch);
       canvas.removeEventListener('click', onClick);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const phase = stateRef.current.phase;
+
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 300 }}>
-      <canvas ref={canvasRef} width={W} height={H}
-        style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
+      <canvas
+        ref={canvasRef} width={W} height={H}
+        style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 8, display: 'block', touchAction: 'none' }}
       />
       {phase === 'idle' && (
-        <button onClick={initGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); initGame(); }}
+          className="constellation-clear"
+          style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)', zIndex: 2, touchAction: 'manipulation' }}
+        >
           Start
         </button>
       )}
       {phase === 'dead' && (
-        <button onClick={initGame} className="constellation-clear" style={{ position: 'absolute', left: '50%', bottom: '30%', transform: 'translateX(-50%)' }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); initGame(); }}
+          className="constellation-clear"
+          style={{ position: 'absolute', left: '50%', bottom: '35%', transform: 'translateX(-50%)', zIndex: 2, touchAction: 'manipulation' }}
+        >
           Retry
         </button>
       )}
