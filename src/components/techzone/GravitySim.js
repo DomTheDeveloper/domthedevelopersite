@@ -126,12 +126,6 @@ const GravitySim = () => {
 
     let animId;
     let lastPinchDist = 0;
-    let showTrailsLocal = true;
-    let showVectorsLocal = false;
-    let showHeatmapLocal = false;
-
-    const stateRef = { showTrails: true, showVectors: false, showHeatmap: false };
-
     if (bodiesRef.current.length === 0) {
       bodiesRef.current.push(makeStar(W_BASE / 2, H_BASE / 2));
       setBodyCount(1);
@@ -152,11 +146,9 @@ const GravitySim = () => {
       setZoom(newZoom);
     };
 
-    let touchIds = [];
     const handleTouchStart = (e) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        touchIds = [e.touches[0].identifier, e.touches[1].identifier];
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         lastPinchDist = Math.sqrt(dx * dx + dy * dy);

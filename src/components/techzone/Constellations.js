@@ -81,9 +81,7 @@ const Constellations = () => {
       const bandCenterY = h * 0.45;
       const bandWidth = h * 0.25;
       for (let i = 0; i < 600; i++) {
-        const t = Math.random();
         const along = Math.random() * (w + 200) - 100;
-        const across = (Math.random() - 0.5) * bandWidth * (1 + Math.random());
         // Gaussian-ish concentration toward center
         const gauss = Math.pow(Math.random(), 0.6) * (Math.random() < 0.5 ? 1 : -1);
         const finalAcross = gauss * bandWidth * 0.5;

@@ -1,469 +1,598 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 const CitySimulator = () => {
   const canvasRef = useRef(null);
   const stateRef = useRef({
     buildings: [],
     cars: [],
-    pedestrians: [],
-    flyingObjects: [],
     clouds: [],
-    initialized: false,
+    airplane: null,
     isNight: true,
+    stars: [],
   });
-  const [population, setPopulation] = useState(0);
-  const [buildMode, setBuildMode] = useState('residential');
+  const [buildingCount, setBuildingCount] = useState(0);
+  const [buildMode, setBuildMode] = useState('skyscraper');
+  const [demolishMode, setDemolishMode] = useState(false);
   const [isNight, setIsNight] = useState(true);
+
+  const W = 400;
+  const H = 300;
+  const GROUND_Y = 230;
+  const ROAD_Y = GROUND_Y + 4;
+  const ROAD_H = 22;
+
+  const initState = useCallback(() => {
+    const st = stateRef.current;
+    st.buildings = [];
+    st.cars = [];
+    st.clouds = [];
+    st.airplane = null;
+    st.stars = [];
+    for (let i = 0; i < 60; i++) {
+      st.stars.push({
+        x: Math.random() * W,
+        y: Math.random() * (GROUND_Y - 30),
+        size: 0.5 + Math.random() * 1.2,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      st.clouds.push({
+        x: Math.random() * W,
+        y: 15 + Math.random() * 55,
+        w: 35 + Math.random() * 50,
+        speed: 0.08 + Math.random() * 0.12,
+      });
+    }
+    for (let i = 0; i < 2; i++) {
+      st.cars.push({
+        x: Math.random() * W,
+        speed: (Math.random() > 0.5 ? 1 : -1) * (0.4 + Math.random() * 0.6),
+        color: ['#64c8ff', '#ff5577', '#ffcc33', '#44dd66'][Math.floor(Math.random() * 4)],
+        width: 12 + Math.random() * 4,
+      });
+    }
+    setBuildingCount(0);
+  }, []);
+
+  useEffect(() => {
+    const st = stateRef.current;
+    if (st.stars.length === 0) {
+      initState();
+    }
+  }, [initState]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animId;
-    const W = 500, H = 320;
     canvas.width = W;
     canvas.height = H;
-    const groundY = 250;
+    let animId;
     const st = stateRef.current;
 
-    const buildingStyles = [
-      // style 0: standard box
-      { draw: (ctx, bx, by, w, h) => { ctx.fillRect(bx, by, w, h); } },
-      // style 1: stepped top
-      { draw: (ctx, bx, by, w, h) => {
-        ctx.fillRect(bx, by + h * 0.15, w, h * 0.85);
-        ctx.fillRect(bx + w * 0.15, by, w * 0.7, h * 0.2);
-      }},
-      // style 2: narrow tower with wider base
-      { draw: (ctx, bx, by, w, h) => {
-        ctx.fillRect(bx + w * 0.1, by, w * 0.8, h * 0.7);
-        ctx.fillRect(bx, by + h * 0.65, w, h * 0.35);
-      }},
-      // style 3: pyramid/tapered top
-      { draw: (ctx, bx, by, w, h) => {
-        ctx.fillRect(bx, by + h * 0.2, w, h * 0.8);
-        ctx.beginPath();
-        ctx.moveTo(bx + w * 0.2, by + h * 0.2);
-        ctx.lineTo(bx + w * 0.5, by);
-        ctx.lineTo(bx + w * 0.8, by + h * 0.2);
-        ctx.closePath();
-        ctx.fill();
-      }},
-    ];
-
-    // Seed initial data
-    if (!st.initialized) {
-      st.initialized = true;
-      for (let i = 0; i < 6; i++) {
-        const w = 28 + Math.random() * 30;
-        const h = 45 + Math.random() * 100;
-        st.buildings.push({
-          x: 20 + i * 78, width: w, height: h,
-          type: ['residential', 'commercial', 'park'][Math.floor(Math.random() * 3)],
-          style: Math.floor(Math.random() * buildingStyles.length),
-          hasAntenna: Math.random() > 0.5,
-          hasSign: Math.random() > 0.6,
-          signColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-          windowSeed: Math.random() * 1000,
-        });
-      }
-      // Initial pedestrians
-      for (let i = 0; i < 8; i++) {
-        st.pedestrians.push({
-          x: Math.random() * W,
-          speed: (Math.random() > 0.5 ? 1 : -1) * (0.2 + Math.random() * 0.3),
-          color: ['#64c8ff', '#c084fc', '#febc2e', '#28c840', '#ff6b6b'][Math.floor(Math.random() * 5)],
-        });
-      }
-      // Initial clouds
-      for (let i = 0; i < 4; i++) {
-        st.clouds.push({
-          x: Math.random() * W,
-          y: 20 + Math.random() * 60,
-          w: 40 + Math.random() * 60,
-          speed: 0.1 + Math.random() * 0.15,
-        });
-      }
-      setPopulation(st.buildings.filter(b => b.type === 'residential').length * 12 + st.buildings.filter(b => b.type === 'commercial').length * 3);
-    }
-
-    const handleInteraction = (clientX, clientY) => {
+    const getCanvasPos = (clientX, clientY) => {
       const rect = canvas.getBoundingClientRect();
       const scaleX = W / rect.width;
-      const x = (clientX - rect.left) * scaleX;
-      const w = buildMode === 'park' ? 38 : 24 + Math.random() * 22;
-      const h = buildMode === 'park' ? 15 : 35 + Math.random() * 100;
+      const scaleY = H / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+      };
+    };
 
-      const nx = x - w / 2;
+    const handleInteraction = (clientX, clientY) => {
+      const pos = getCanvasPos(clientX, clientY);
+      const x = pos.x;
+      const y = pos.y;
+
+      if (demolishMode) {
+        const idx = st.buildings.findIndex(b => {
+          const bx = b.x;
+          const by = GROUND_Y - b.height;
+          return x >= bx && x <= bx + b.width && y >= by && y <= GROUND_Y;
+        });
+        if (idx !== -1) {
+          st.buildings.splice(idx, 1);
+          setBuildingCount(st.buildings.length);
+        }
+        return;
+      }
+
+      // Only place if clicking in the ground/sky area above the road
+      if (y > GROUND_Y + 2) return;
+
+      let w, h;
+      switch (buildMode) {
+        case 'skyscraper':
+          w = 22 + Math.random() * 14;
+          h = 80 + Math.random() * 70;
+          break;
+        case 'house':
+          w = 24 + Math.random() * 10;
+          h = 28 + Math.random() * 18;
+          break;
+        case 'factory':
+          w = 30 + Math.random() * 16;
+          h = 40 + Math.random() * 25;
+          break;
+        case 'tower':
+          w = 14 + Math.random() * 8;
+          h = 100 + Math.random() * 50;
+          break;
+        default:
+          w = 24; h = 60;
+      }
+
+      const nx = Math.max(2, Math.min(W - w - 2, x - w / 2));
       const overlap = st.buildings.some(b =>
-        nx < b.x + b.width + 4 && nx + w + 4 > b.x
+        nx < b.x + b.width + 2 && nx + w + 2 > b.x
       );
       if (overlap) return;
 
       st.buildings.push({
         x: nx, width: w, height: h, type: buildMode,
-        style: Math.floor(Math.random() * buildingStyles.length),
+        variant: Math.floor(Math.random() * 3),
         hasAntenna: Math.random() > 0.4,
-        hasSign: Math.random() > 0.5,
-        signColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
+        hasDoor: true,
         windowSeed: Math.random() * 1000,
-        isNew: true,
+        roofDetail: Math.floor(Math.random() * 3),
+        wallShade: 0.8 + Math.random() * 0.4,
       });
-      if (buildMode === 'residential') setPopulation(p => p + Math.floor(Math.random() * 8 + 5));
-      if (buildMode === 'commercial') setPopulation(p => p + Math.floor(Math.random() * 3 + 1));
+      setBuildingCount(st.buildings.length);
 
-      // Spawn car
-      if (Math.random() > 0.35) {
+      if (Math.random() > 0.4) {
         st.cars.push({
           x: Math.random() > 0.5 ? -20 : W + 20,
-          speed: (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random()),
-          color: ['#64c8ff', '#ff6b6b', '#febc2e', '#28c840', '#c084fc'][Math.floor(Math.random() * 5)],
-        });
-      }
-      // Spawn pedestrian
-      if (Math.random() > 0.3) {
-        st.pedestrians.push({
-          x: x,
-          speed: (Math.random() > 0.5 ? 1 : -1) * (0.2 + Math.random() * 0.3),
-          color: ['#64c8ff', '#c084fc', '#febc2e'][Math.floor(Math.random() * 3)],
+          speed: (Math.random() > 0.5 ? 1 : -1) * (0.4 + Math.random() * 0.6),
+          color: ['#64c8ff', '#ff5577', '#ffcc33', '#44dd66'][Math.floor(Math.random() * 4)],
+          width: 12 + Math.random() * 4,
         });
       }
     };
 
-    const handleClick = (e) => handleInteraction(e.clientX, e.clientY);
+    const handleClick = (e) => {
+      e.preventDefault();
+      handleInteraction(e.clientX, e.clientY);
+    };
     const handleTouch = (e) => {
       e.preventDefault();
-      if (e.touches.length > 0) handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+      if (e.touches.length > 0) {
+        handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+      }
     };
 
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('touchstart', handleTouch, { passive: false });
 
+    const drawCloud = (c, night) => {
+      const alpha = night ? 0.06 : 0.25;
+      ctx.fillStyle = night ? `rgba(140,170,210,${alpha})` : `rgba(255,255,255,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.w * 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(c.x + c.w * 0.2, c.y - c.w * 0.07, c.w * 0.28, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(c.x + c.w * 0.45, c.y + c.w * 0.02, c.w * 0.18, 0, Math.PI * 2); ctx.fill();
+    };
+
+    const drawBuilding = (b, night, time) => {
+      const bx = b.x;
+      const by = GROUND_Y - b.height;
+      const bw = b.width;
+      const bh = b.height;
+      const seed = b.windowSeed;
+
+      // -- Building body --
+      const shade = b.wallShade || 1;
+      if (night) {
+        const baseR = Math.floor(14 * shade);
+        const baseG = Math.floor(22 * shade);
+        const baseB = Math.floor(38 * shade);
+        ctx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+      } else {
+        const baseR = Math.floor(110 * shade);
+        const baseG = Math.floor(125 * shade);
+        const baseB = Math.floor(148 * shade);
+        ctx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+      }
+
+      // Draw shape based on type and variant
+      if (b.type === 'skyscraper') {
+        if (b.variant === 0) {
+          // Stepped top
+          ctx.fillRect(bx, by + bh * 0.12, bw, bh * 0.88);
+          ctx.fillRect(bx + bw * 0.15, by, bw * 0.7, bh * 0.18);
+        } else if (b.variant === 1) {
+          // Tapered top
+          ctx.fillRect(bx, by + bh * 0.15, bw, bh * 0.85);
+          ctx.beginPath();
+          ctx.moveTo(bx + bw * 0.2, by + bh * 0.15);
+          ctx.lineTo(bx + bw * 0.5, by);
+          ctx.lineTo(bx + bw * 0.8, by + bh * 0.15);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // Flat top box
+          ctx.fillRect(bx, by, bw, bh);
+        }
+      } else if (b.type === 'house') {
+        // House body
+        ctx.fillRect(bx, by + bh * 0.35, bw, bh * 0.65);
+        // Roof
+        if (night) {
+          ctx.fillStyle = 'rgb(20,14,10)';
+        } else {
+          ctx.fillStyle = '#7a4433';
+        }
+        ctx.beginPath();
+        ctx.moveTo(bx - 2, by + bh * 0.35);
+        ctx.lineTo(bx + bw / 2, by);
+        ctx.lineTo(bx + bw + 2, by + bh * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        // Chimney
+        if (b.variant === 1) {
+          ctx.fillStyle = night ? 'rgb(18,12,10)' : '#664433';
+          ctx.fillRect(bx + bw * 0.7, by + bh * 0.05, bw * 0.12, bh * 0.3);
+        }
+      } else if (b.type === 'factory') {
+        // Main body
+        ctx.fillRect(bx, by + bh * 0.25, bw, bh * 0.75);
+        // Sawtooth roof
+        const teeth = 3;
+        const tw = bw / teeth;
+        if (night) {
+          ctx.fillStyle = 'rgb(16,20,30)';
+        } else {
+          ctx.fillStyle = '#6a7a8a';
+        }
+        for (let t = 0; t < teeth; t++) {
+          ctx.beginPath();
+          ctx.moveTo(bx + t * tw, by + bh * 0.25);
+          ctx.lineTo(bx + t * tw + tw * 0.5, by);
+          ctx.lineTo(bx + (t + 1) * tw, by + bh * 0.25);
+          ctx.closePath();
+          ctx.fill();
+        }
+        // Smokestack
+        if (b.variant !== 2) {
+          ctx.fillStyle = night ? 'rgb(22,28,38)' : '#556677';
+          ctx.fillRect(bx + bw * 0.8, by - bh * 0.15, bw * 0.1, bh * 0.4);
+          // Smoke puff
+          ctx.fillStyle = night ? 'rgba(140,160,180,0.08)' : 'rgba(200,200,200,0.2)';
+          const smokeY = by - bh * 0.15 - 4 - Math.sin(time * 0.002) * 3;
+          ctx.beginPath();
+          ctx.arc(bx + bw * 0.85, smokeY, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(bx + bw * 0.88, smokeY - 5, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (b.type === 'tower') {
+        // Narrow tower with wider observation deck
+        ctx.fillRect(bx + bw * 0.2, by + bh * 0.1, bw * 0.6, bh * 0.9);
+        // Observation deck
+        ctx.fillRect(bx, by + bh * 0.25, bw, bh * 0.08);
+        // Spire
+        ctx.fillRect(bx + bw * 0.4, by - bh * 0.08, bw * 0.2, bh * 0.18);
+        // Top point
+        ctx.beginPath();
+        ctx.moveTo(bx + bw * 0.35, by - bh * 0.08);
+        ctx.lineTo(bx + bw * 0.5, by - bh * 0.18);
+        ctx.lineTo(bx + bw * 0.65, by - bh * 0.08);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // -- Edge outline --
+      ctx.strokeStyle = night ? 'rgba(100,200,255,0.1)' : 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(bx, by, bw, bh);
+
+      // -- Windows --
+      const wSize = b.type === 'house' ? 3 : 2.5;
+      const wGapX = b.type === 'house' ? 8 : 6;
+      const wGapY = b.type === 'house' ? 8 : 7;
+      const winStartY = b.type === 'house' ? by + bh * 0.4 : by + 6;
+      const winEndY = GROUND_Y - 10;
+      const cols = Math.max(1, Math.floor((bw - 4) / wGapX));
+      const rows = Math.max(1, Math.floor((winEndY - winStartY) / wGapY));
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const wx = bx + 3 + c * wGapX;
+          const wy = winStartY + r * wGapY;
+          if (wy + wSize > GROUND_Y - 6) continue;
+
+          if (night) {
+            const lit = Math.sin(seed + wx * 3.1 + wy * 5.7 + time * 0.0001) > 0.05;
+            if (lit) {
+              const warm = Math.sin(seed + c * 4 + r * 2.3) > 0;
+              ctx.fillStyle = warm ? 'rgba(255,220,100,0.6)' : 'rgba(100,200,255,0.5)';
+              ctx.shadowColor = warm ? 'rgba(255,220,100,0.3)' : 'rgba(100,200,255,0.2)';
+              ctx.shadowBlur = 2;
+            } else {
+              ctx.fillStyle = 'rgba(15,20,35,0.9)';
+              ctx.shadowBlur = 0;
+            }
+          } else {
+            const reflected = Math.sin(seed + wx * 2 + time * 0.0004) > 0.4;
+            ctx.fillStyle = reflected ? 'rgba(170,210,240,0.7)' : 'rgba(100,130,160,0.5)';
+            ctx.shadowBlur = 0;
+          }
+
+          if ((r + c) % 3 === 0) {
+            ctx.fillRect(wx, wy, wSize, wSize + 1.5);
+          } else {
+            ctx.fillRect(wx, wy, wSize, wSize);
+          }
+        }
+      }
+      ctx.shadowBlur = 0;
+
+      // -- Door --
+      if (b.hasDoor) {
+        if (b.type === 'house') {
+          ctx.fillStyle = night ? 'rgba(100,200,255,0.15)' : '#5a3a1a';
+          ctx.fillRect(bx + bw / 2 - 3, GROUND_Y - 9, 6, 9);
+          // Doorknob
+          ctx.fillStyle = night ? 'rgba(100,200,255,0.3)' : '#ccaa44';
+          ctx.beginPath();
+          ctx.arc(bx + bw / 2 + 1.5, GROUND_Y - 5, 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = night ? 'rgba(100,200,255,0.12)' : 'rgba(40,40,60,0.4)';
+          ctx.fillRect(bx + bw / 2 - 3, GROUND_Y - 7, 6, 7);
+        }
+      }
+
+      // -- Antenna --
+      if (b.hasAntenna && b.type !== 'house') {
+        const antennaBase = b.type === 'tower' ? by - bh * 0.18 : by;
+        ctx.strokeStyle = night ? 'rgba(100,200,255,0.25)' : 'rgba(80,80,100,0.4)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(bx + bw / 2, antennaBase);
+        ctx.lineTo(bx + bw / 2, antennaBase - 10);
+        ctx.stroke();
+        // Blinking light
+        const blink = Math.sin(time * 0.004 + seed) > 0.2;
+        ctx.fillStyle = blink ? 'rgba(255,50,50,0.9)' : 'rgba(255,50,50,0.2)';
+        ctx.beginPath();
+        ctx.arc(bx + bw / 2, antennaBase - 10, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // -- Rooftop details --
+      if (b.type === 'skyscraper' || b.type === 'factory') {
+        if (b.roofDetail === 0 && bh > 50) {
+          // Water tank
+          ctx.fillStyle = night ? '#1a2535' : '#6a7a8a';
+          ctx.fillRect(bx + bw * 0.65, by + 2, 6, 6);
+          ctx.fillRect(bx + bw * 0.67, by, 4, 3);
+        } else if (b.roofDetail === 1) {
+          // AC unit
+          ctx.fillStyle = night ? '#151e2a' : '#7a8a9a';
+          ctx.fillRect(bx + 3, by + 2, 5, 4);
+          ctx.fillRect(bx + 4, by, 3, 2);
+        }
+      }
+
+      // Demolish highlight
+      if (demolishMode) {
+        ctx.strokeStyle = 'rgba(255,50,50,0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.strokeRect(bx - 1, by - 1, bw + 2, bh + 2);
+        ctx.setLineDash([]);
+      }
+    };
+
     const draw = () => {
       const night = st.isNight;
+      const time = Date.now();
       ctx.clearRect(0, 0, W, H);
 
-      // Sky
-      const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+      // -- Sky gradient --
+      const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
       if (night) {
-        sky.addColorStop(0, '#05080f');
-        sky.addColorStop(1, '#0a1025');
+        sky.addColorStop(0, '#030610');
+        sky.addColorStop(0.5, '#081020');
+        sky.addColorStop(1, '#0c1828');
       } else {
         sky.addColorStop(0, '#1a3a6a');
         sky.addColorStop(0.5, '#3a6a9a');
-        sky.addColorStop(1, '#6a9ac8');
+        sky.addColorStop(1, '#5a8aba');
       }
       ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, W, groundY);
+      ctx.fillRect(0, 0, W, GROUND_Y);
 
-      // Stars (night only)
+      // -- Stars (night) --
       if (night) {
-        for (let i = 0; i < 50; i++) {
-          const sx = (i * 137.5 + 50) % W;
-          const sy = (i * 73.3 + 20) % (groundY - 50);
-          const alpha = 0.25 + Math.sin(Date.now() * 0.001 + i * 2.5) * 0.2;
-          ctx.beginPath(); ctx.arc(sx, sy, 0.7 + (i % 3) * 0.3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200, 220, 255, ${alpha})`; ctx.fill();
-        }
+        st.stars.forEach(s => {
+          const alpha = 0.3 + Math.sin(time * 0.001 + s.twinkleOffset) * 0.25;
+          ctx.fillStyle = `rgba(200,220,255,${Math.max(0, alpha)})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
       }
 
-      // Moon/Sun
+      // -- Moon or Sun --
       ctx.save();
       if (night) {
-        ctx.shadowColor = '#c8deff'; ctx.shadowBlur = 25;
-        ctx.beginPath(); ctx.arc(420, 42, 18, 0, Math.PI * 2);
-        ctx.fillStyle = '#e0e8f5'; ctx.fill();
-        // Moon craters
-        ctx.fillStyle = 'rgba(180,190,210,0.3)';
-        ctx.beginPath(); ctx.arc(414, 38, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(425, 48, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowColor = '#a0c8ff';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#d8e4f0';
+        ctx.beginPath(); ctx.arc(W - 50, 38, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(170,180,200,0.25)';
+        ctx.beginPath(); ctx.arc(W - 54, 34, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W - 44, 42, 2.5, 0, Math.PI * 2); ctx.fill();
       } else {
-        ctx.shadowColor = '#ffdd44'; ctx.shadowBlur = 35;
-        ctx.beginPath(); ctx.arc(420, 50, 22, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffe066'; ctx.fill();
+        ctx.shadowColor = '#ffdd44';
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = '#ffe066';
+        ctx.beginPath(); ctx.arc(W - 60, 45, 20, 0, Math.PI * 2); ctx.fill();
       }
       ctx.restore();
 
-      // Clouds
+      // -- Clouds --
       st.clouds.forEach(c => {
         c.x += c.speed;
-        if (c.x > W + c.w) c.x = -c.w;
-        const ca = night ? 0.04 : 0.2;
-        ctx.fillStyle = night ? `rgba(150,170,200,${ca})` : `rgba(255,255,255,${ca})`;
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.w * 0.25, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath();
-        ctx.arc(c.x + c.w * 0.2, c.y - c.w * 0.08, c.w * 0.3, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath();
-        ctx.arc(c.x + c.w * 0.45, c.y, c.w * 0.22, 0, Math.PI * 2); ctx.fill();
+        if (c.x > W + c.w) c.x = -c.w - 10;
+        drawCloud(c, night);
       });
 
-      // Flying objects (airplane/helicopter)
-      if (Math.random() < 0.003 && st.flyingObjects.length < 2) {
-        const isHeli = Math.random() > 0.5;
-        st.flyingObjects.push({
-          x: -40, y: 30 + Math.random() * 60,
-          speed: isHeli ? 0.6 + Math.random() * 0.4 : 1.0 + Math.random() * 0.8,
-          isHeli,
-        });
+      // -- Airplane --
+      if (!st.airplane && Math.random() < 0.002) {
+        st.airplane = {
+          x: -30,
+          y: 20 + Math.random() * 50,
+          speed: 0.6 + Math.random() * 0.5,
+        };
       }
-      st.flyingObjects.forEach(fo => {
-        fo.x += fo.speed;
-        ctx.save();
-        if (fo.isHeli) {
-          // Helicopter body
-          ctx.fillStyle = night ? 'rgba(100,200,255,0.4)' : 'rgba(80,80,100,0.7)';
-          ctx.fillRect(fo.x, fo.y, 14, 6);
-          ctx.fillRect(fo.x + 12, fo.y - 2, 5, 4);
-          // Rotor
-          const rotorPhase = Math.sin(Date.now() * 0.03) * 10;
-          ctx.strokeStyle = night ? 'rgba(100,200,255,0.3)' : 'rgba(60,60,80,0.5)';
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(fo.x + 3 - rotorPhase, fo.y - 2); ctx.lineTo(fo.x + 11 + rotorPhase, fo.y - 2); ctx.stroke();
-          // Tail
-          ctx.fillRect(fo.x - 6, fo.y + 1, 7, 2);
-          ctx.fillRect(fo.x - 7, fo.y - 2, 3, 4);
-        } else {
-          // Airplane
-          ctx.fillStyle = night ? 'rgba(100,200,255,0.3)' : 'rgba(200,200,220,0.7)';
-          ctx.fillRect(fo.x, fo.y, 20, 4);
-          // Wings
-          ctx.fillRect(fo.x + 6, fo.y - 5, 8, 14);
-          // Tail
-          ctx.fillRect(fo.x - 2, fo.y - 4, 5, 8);
-          // Blinking light
-          if (Math.sin(Date.now() * 0.005) > 0) {
-            ctx.fillStyle = 'rgba(255,60,60,0.8)';
-            ctx.beginPath(); ctx.arc(fo.x + 10, fo.y - 5, 1.5, 0, Math.PI * 2); ctx.fill();
-          }
+      if (st.airplane) {
+        const ap = st.airplane;
+        ap.x += ap.speed;
+        ctx.fillStyle = night ? 'rgba(100,200,255,0.25)' : 'rgba(210,210,220,0.7)';
+        // Fuselage
+        ctx.fillRect(ap.x, ap.y, 16, 3);
+        // Wings
+        ctx.fillRect(ap.x + 4, ap.y - 4, 7, 11);
+        // Tail
+        ctx.fillRect(ap.x - 1, ap.y - 3, 4, 7);
+        // Blinking nav light
+        if (Math.sin(time * 0.005) > 0) {
+          ctx.fillStyle = 'rgba(255,50,50,0.8)';
+          ctx.beginPath(); ctx.arc(ap.x + 8, ap.y - 4, 1, 0, Math.PI * 2); ctx.fill();
         }
-        ctx.restore();
-      });
-      st.flyingObjects = st.flyingObjects.filter(fo => fo.x < W + 50);
-
-      // Ground
-      ctx.fillStyle = night ? '#0d1520' : '#1a2a1a';
-      ctx.fillRect(0, groundY, W, H - groundY);
-
-      // Road
-      ctx.fillStyle = night ? '#151d2b' : '#2a2a2a';
-      ctx.fillRect(0, groundY + 5, W, 25);
-      ctx.setLineDash([15, 10]);
-      ctx.strokeStyle = night ? 'rgba(100, 200, 255, 0.15)' : 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0, groundY + 17); ctx.lineTo(W, groundY + 17); ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Sidewalk
-      ctx.fillStyle = night ? '#1a2030' : '#3a3a3a';
-      ctx.fillRect(0, groundY + 30, W, 8);
-      // Sidewalk lines
-      ctx.strokeStyle = night ? 'rgba(100,200,255,0.06)' : 'rgba(255,255,255,0.1)';
-      for (let sx = 0; sx < W; sx += 20) {
-        ctx.beginPath(); ctx.moveTo(sx, groundY + 30); ctx.lineTo(sx, groundY + 38); ctx.stroke();
-      }
-
-      // Buildings
-      st.buildings.forEach(b => {
-        if (b.type === 'park') {
-          // Tree trunk
-          ctx.fillStyle = night ? '#2d1f0a' : '#5a3a1a';
-          ctx.fillRect(b.x + b.width / 2 - 3, groundY - 8, 6, 10);
-          // Tree canopy - layered circles
-          const treeColor = night ? '#1a3a2a' : '#2a6a2a';
-          ctx.fillStyle = treeColor;
-          ctx.beginPath(); ctx.arc(b.x + b.width / 2, groundY - 18, 14, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(b.x + b.width / 2 - 7, groundY - 12, 10, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(b.x + b.width / 2 + 7, groundY - 12, 10, 0, Math.PI * 2); ctx.fill();
-          // Grass
-          ctx.fillStyle = night ? 'rgba(40, 200, 64, 0.12)' : 'rgba(40, 180, 64, 0.25)';
-          ctx.fillRect(b.x - 3, groundY - 2, b.width + 6, 4);
-          // Bench
-          ctx.fillStyle = night ? '#2a2a3a' : '#5a4a2a';
-          ctx.fillRect(b.x + 4, groundY - 4, 10, 3);
-          ctx.fillRect(b.x + 5, groundY - 1, 1, 3);
-          ctx.fillRect(b.x + 12, groundY - 1, 1, 3);
-          return;
-        }
-
-        const bx = b.x;
-        const by = groundY - b.height;
-        const styleIdx = b.style || 0;
-
-        // Building body
-        const bGrad = ctx.createLinearGradient(bx, by, bx + b.width, by);
         if (night) {
-          if (b.type === 'residential') {
-            bGrad.addColorStop(0, '#141e30'); bGrad.addColorStop(1, '#1a2540');
-          } else {
-            bGrad.addColorStop(0, '#1a1530'); bGrad.addColorStop(1, '#201a40');
-          }
+          ctx.fillStyle = 'rgba(255,255,200,0.6)';
+          ctx.fillRect(ap.x + 16, ap.y + 0.5, 2, 1.5);
+        }
+        if (ap.x > W + 40) st.airplane = null;
+      }
+
+      // -- Ground --
+      const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+      if (night) {
+        groundGrad.addColorStop(0, '#0a1018');
+        groundGrad.addColorStop(1, '#060a10');
+      } else {
+        groundGrad.addColorStop(0, '#1a2a1a');
+        groundGrad.addColorStop(1, '#0f1a0f');
+      }
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+      // -- Road --
+      ctx.fillStyle = night ? '#111822' : '#2a2a2a';
+      ctx.fillRect(0, ROAD_Y, W, ROAD_H);
+      // Road dashes
+      ctx.setLineDash([12, 8]);
+      ctx.strokeStyle = night ? 'rgba(100,200,255,0.12)' : 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, ROAD_Y + ROAD_H / 2);
+      ctx.lineTo(W, ROAD_Y + ROAD_H / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Road edges
+      ctx.strokeStyle = night ? 'rgba(100,200,255,0.06)' : 'rgba(255,255,255,0.08)';
+      ctx.beginPath(); ctx.moveTo(0, ROAD_Y); ctx.lineTo(W, ROAD_Y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, ROAD_Y + ROAD_H); ctx.lineTo(W, ROAD_Y + ROAD_H); ctx.stroke();
+
+      // -- Sidewalk --
+      ctx.fillStyle = night ? '#141c28' : '#3a3a3a';
+      ctx.fillRect(0, ROAD_Y + ROAD_H, W, 6);
+
+      // -- Buildings (sorted by x for consistent layering) --
+      const sortedBuildings = [...st.buildings].sort((a, b2) => a.x - b2.x);
+      sortedBuildings.forEach(b => drawBuilding(b, night, time));
+
+      // -- Street lamps --
+      for (let lx = 35; lx < W; lx += 90) {
+        ctx.strokeStyle = night ? '#1a2535' : '#4a4a4a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(lx, ROAD_Y + ROAD_H + 6);
+        ctx.lineTo(lx, GROUND_Y - 8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(lx, GROUND_Y - 8);
+        ctx.lineTo(lx + 5, GROUND_Y - 11);
+        ctx.stroke();
+        if (night) {
+          const glow = ctx.createRadialGradient(lx + 5, GROUND_Y - 11, 0, lx + 5, GROUND_Y - 11, 20);
+          glow.addColorStop(0, 'rgba(255,220,140,0.12)');
+          glow.addColorStop(1, 'rgba(255,220,140,0)');
+          ctx.fillStyle = glow;
+          ctx.fillRect(lx - 15, GROUND_Y - 31, 40, 40);
+          ctx.fillStyle = 'rgba(255,220,140,0.7)';
+          ctx.beginPath(); ctx.arc(lx + 5, GROUND_Y - 11, 1.5, 0, Math.PI * 2); ctx.fill();
         } else {
-          if (b.type === 'residential') {
-            bGrad.addColorStop(0, '#8a9ab0'); bGrad.addColorStop(1, '#a0b0c8');
-          } else {
-            bGrad.addColorStop(0, '#7a8aa0'); bGrad.addColorStop(1, '#90a0b8');
-          }
+          ctx.fillStyle = 'rgba(200,200,200,0.5)';
+          ctx.beginPath(); ctx.arc(lx + 5, GROUND_Y - 11, 1.5, 0, Math.PI * 2); ctx.fill();
         }
-        ctx.fillStyle = bGrad;
-        const styleDef = buildingStyles[styleIdx];
-        styleDef.draw(ctx, bx, by, b.width, b.height);
+      }
 
-        // Building edge
-        ctx.strokeStyle = night ? 'rgba(100, 200, 255, 0.08)' : 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bx, by, b.width, b.height);
-
-        // Windows - varied patterns
-        const wSize = 3;
-        const wGapX = 7;
-        const wGapY = 8;
-        const cols = Math.floor((b.width - 5) / wGapX);
-        const rows = Math.floor((b.height - 10) / wGapY);
-        const seed = b.windowSeed || 0;
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            const wx = bx + 3 + c * wGapX;
-            const wy = by + 7 + r * wGapY;
-            if (night) {
-              const lit = Math.sin(seed + wx * 3.7 + wy * 7.3 + Date.now() * 0.0002) > 0.15;
-              if (lit) {
-                const warmth = Math.sin(seed + c * 5 + r * 3) > 0;
-                ctx.fillStyle = b.type === 'commercial'
-                  ? 'rgba(100, 200, 255, 0.65)'
-                  : (warmth ? 'rgba(255, 220, 100, 0.55)' : 'rgba(255, 200, 150, 0.4)');
-              } else {
-                ctx.fillStyle = 'rgba(20, 30, 50, 0.8)';
-              }
-            } else {
-              const reflected = Math.sin(seed + wx * 2 + Date.now() * 0.0005) > 0.5;
-              ctx.fillStyle = reflected ? 'rgba(180,210,240,0.7)' : 'rgba(120,150,180,0.5)';
-            }
-            // Alternate between square and tall windows
-            if ((r + c) % 3 === 0) {
-              ctx.fillRect(wx, wy, wSize, wSize + 2);
-            } else {
-              ctx.fillRect(wx, wy, wSize, wSize);
-            }
-          }
-        }
-
-        // Door at base
-        ctx.fillStyle = night ? 'rgba(100,200,255,0.15)' : 'rgba(60,40,20,0.5)';
-        ctx.fillRect(bx + b.width / 2 - 3, groundY - 8, 6, 8);
-
-        // Antenna
-        if (b.hasAntenna && b.type !== 'park') {
-          ctx.strokeStyle = night ? 'rgba(100,200,255,0.3)' : 'rgba(80,80,100,0.5)';
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(bx + b.width / 2, by); ctx.lineTo(bx + b.width / 2, by - 12); ctx.stroke();
-          // Blinking light on antenna
-          const blink = Math.sin(Date.now() * 0.003 + seed) > 0.3;
-          ctx.fillStyle = blink ? 'rgba(255,60,60,0.8)' : 'rgba(255,60,60,0.2)';
-          ctx.beginPath(); ctx.arc(bx + b.width / 2, by - 12, 1.5, 0, Math.PI * 2); ctx.fill();
-        }
-
-        // Rooftop sign for commercial
-        if (b.hasSign && b.type === 'commercial') {
-          ctx.fillStyle = night ? (b.signColor || 'rgba(255,100,100,0.6)') : 'rgba(100,100,120,0.4)';
-          ctx.fillRect(bx + 4, by + 3, b.width - 8, 5);
-          if (night) {
-            ctx.save();
-            ctx.shadowColor = b.signColor || '#ff6b6b';
-            ctx.shadowBlur = 6;
-            ctx.fillRect(bx + 4, by + 3, b.width - 8, 5);
-            ctx.restore();
-          }
-        }
-
-        // Water tank on some residential
-        if (b.type === 'residential' && seed > 500 && b.height > 60) {
-          ctx.fillStyle = night ? '#1a2535' : '#6a7a8a';
-          ctx.fillRect(bx + b.width * 0.6, by - 8, 8, 8);
-          ctx.fillRect(bx + b.width * 0.62, by - 10, 6, 3);
-        }
-      });
-
-      // Cars
+      // -- Cars --
       st.cars.forEach(car => {
         car.x += car.speed;
-        const cy = groundY + 12;
-        ctx.fillStyle = car.color;
-        // Car body
-        ctx.fillRect(car.x, cy, 14, 5);
-        ctx.fillRect(car.x + 2, cy - 3, 10, 4);
-        // Windows
-        ctx.fillStyle = night ? 'rgba(150,200,255,0.3)' : 'rgba(180,220,255,0.6)';
-        ctx.fillRect(car.x + 3, cy - 2, 4, 3);
-        ctx.fillRect(car.x + 8, cy - 2, 3, 3);
-        // Wheels
-        ctx.fillStyle = '#111';
-        ctx.beginPath(); ctx.arc(car.x + 3, cy + 5, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(car.x + 11, cy + 5, 2, 0, Math.PI * 2); ctx.fill();
-        // Headlights
-        if (night) {
-          ctx.fillStyle = 'rgba(255, 255, 200, 0.7)';
-          ctx.fillRect(car.speed > 0 ? car.x + 14 : car.x - 3, cy + 1, 3, 2);
-          // Taillights
-          ctx.fillStyle = 'rgba(255, 40, 40, 0.6)';
-          ctx.fillRect(car.speed > 0 ? car.x - 1 : car.x + 13, cy + 1, 2, 2);
-        }
-      });
-      st.cars = st.cars.filter(c => c.x > -30 && c.x < W + 30);
-
-      // Pedestrians on sidewalk
-      st.pedestrians.forEach(ped => {
-        ped.x += ped.speed;
-        if (ped.x < -10) ped.x = W + 10;
-        if (ped.x > W + 10) ped.x = -10;
-        const py = groundY + 33;
+        const cy = ROAD_Y + 5;
+        const cw = car.width;
         // Body
-        ctx.fillStyle = ped.color;
-        ctx.globalAlpha = night ? 0.5 : 0.7;
-        // Head
-        ctx.beginPath(); ctx.arc(ped.x, py - 5, 2, 0, Math.PI * 2); ctx.fill();
-        // Torso
-        ctx.fillRect(ped.x - 1.5, py - 3, 3, 5);
-        // Legs - animated
-        const legPhase = Math.sin(Date.now() * 0.008 + ped.x);
-        ctx.fillRect(ped.x - 1.5 + legPhase, py + 2, 1.5, 3);
-        ctx.fillRect(ped.x - legPhase, py + 2, 1.5, 3);
-        ctx.globalAlpha = 1;
-      });
-
-      // Street lamps
-      for (let lx = 30; lx < W; lx += 100) {
-        ctx.strokeStyle = night ? '#2a3545' : '#4a4a4a';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(lx, groundY + 30); ctx.lineTo(lx, groundY - 5); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(lx, groundY - 5); ctx.lineTo(lx + 5, groundY - 8); ctx.stroke();
+        ctx.fillStyle = car.color;
+        ctx.fillRect(car.x, cy, cw, 4);
+        ctx.fillRect(car.x + cw * 0.15, cy - 3, cw * 0.7, 3.5);
+        // Car windows
+        ctx.fillStyle = night ? 'rgba(140,200,255,0.3)' : 'rgba(180,220,255,0.5)';
+        ctx.fillRect(car.x + cw * 0.2, cy - 2.5, cw * 0.25, 2.5);
+        ctx.fillRect(car.x + cw * 0.52, cy - 2.5, cw * 0.2, 2.5);
+        // Wheels
+        ctx.fillStyle = '#0a0a0a';
+        ctx.beginPath(); ctx.arc(car.x + cw * 0.2, cy + 4, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(car.x + cw * 0.8, cy + 4, 1.8, 0, Math.PI * 2); ctx.fill();
+        // Headlights / taillights
         if (night) {
-          // Lamp glow
-          const glow = ctx.createRadialGradient(lx + 5, groundY - 8, 0, lx + 5, groundY - 8, 25);
-          glow.addColorStop(0, 'rgba(255,220,150,0.15)');
-          glow.addColorStop(1, 'rgba(255,220,150,0)');
-          ctx.fillStyle = glow;
-          ctx.fillRect(lx - 20, groundY - 33, 50, 50);
-          ctx.fillStyle = 'rgba(255,220,150,0.8)';
-          ctx.beginPath(); ctx.arc(lx + 5, groundY - 8, 2, 0, Math.PI * 2); ctx.fill();
+          const front = car.speed > 0 ? car.x + cw : car.x - 2;
+          const back = car.speed > 0 ? car.x - 1 : car.x + cw;
+          ctx.fillStyle = 'rgba(255,255,190,0.7)';
+          ctx.fillRect(front, cy + 0.5, 2, 1.5);
+          ctx.fillStyle = 'rgba(255,40,40,0.6)';
+          ctx.fillRect(back, cy + 0.5, 1.5, 1.5);
         }
+      });
+      // Remove off-screen cars and occasionally add new ones
+      st.cars = st.cars.filter(c => c.x > -25 && c.x < W + 25);
+      if (st.cars.length < 3 && Math.random() < 0.005) {
+        st.cars.push({
+          x: Math.random() > 0.5 ? -20 : W + 20,
+          speed: (Math.random() > 0.5 ? 1 : -1) * (0.4 + Math.random() * 0.6),
+          color: ['#64c8ff', '#ff5577', '#ffcc33', '#44dd66'][Math.floor(Math.random() * 4)],
+          width: 12 + Math.random() * 4,
+        });
       }
 
-      // Reflection on ground (night)
+      // -- Neon ground reflection (night) --
       if (night) {
-        ctx.fillStyle = 'rgba(100, 200, 255, 0.015)';
-        ctx.fillRect(0, groundY + 38, W, H - groundY - 38);
+        ctx.fillStyle = 'rgba(100,200,255,0.02)';
+        ctx.fillRect(0, ROAD_Y + ROAD_H + 6, W, H - ROAD_Y - ROAD_H - 6);
       }
 
       animId = requestAnimationFrame(draw);
     };
 
     draw();
+
     return () => {
       cancelAnimationFrame(animId);
       canvas.removeEventListener('click', handleClick);
       canvas.removeEventListener('touchstart', handleTouch);
     };
-  }, [buildMode]);
+  }, [buildMode, demolishMode, ROAD_Y]);
 
   const toggleDayNight = () => {
     setIsNight(prev => {
@@ -472,35 +601,104 @@ const CitySimulator = () => {
     });
   };
 
+  const handleClear = () => {
+    stateRef.current.buildings = [];
+    setBuildingCount(0);
+  };
+
+  const handleReset = () => {
+    initState();
+  };
+
+  const btnBase = {
+    background: 'rgba(100,200,255,0.08)',
+    border: '1px solid rgba(100,200,255,0.25)',
+    color: '#64c8ff',
+    padding: '4px 10px',
+    borderRadius: 4,
+    cursor: 'pointer',
+    fontSize: 12,
+    fontFamily: 'monospace',
+    transition: 'background 0.2s',
+  };
+
+  const btnActive = {
+    ...btnBase,
+    background: 'rgba(100,200,255,0.2)',
+    border: '1px solid #64c8ff',
+    color: '#ffffff',
+  };
+
+  const btnDemolish = {
+    ...btnBase,
+    border: demolishMode ? '1px solid #ff5577' : '1px solid rgba(255,85,119,0.3)',
+    color: demolishMode ? '#ffffff' : '#ff5577',
+    background: demolishMode ? 'rgba(255,85,119,0.25)' : 'rgba(255,85,119,0.06)',
+  };
+
   return (
-    <div className="city-sim">
-      <div className="city-sim__toolbar">
+    <div style={{ background: '#080c14', borderRadius: 8, padding: 12, maxWidth: 420 }}>
+      {/* Toolbar row 1: building types */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
         {[
-          { id: 'residential', label: '🏠 Residential' },
-          { id: 'commercial', label: '🏢 Commercial' },
-          { id: 'park', label: '🌳 Park' },
+          { id: 'skyscraper', label: 'Skyscraper' },
+          { id: 'house', label: 'House' },
+          { id: 'factory', label: 'Factory' },
+          { id: 'tower', label: 'Tower' },
         ].map(b => (
           <button
             key={b.id}
-            className={`city-sim__btn ${buildMode === b.id ? 'city-sim__btn--active' : ''}`}
-            onClick={() => setBuildMode(b.id)}
+            style={!demolishMode && buildMode === b.id ? btnActive : btnBase}
+            onClick={() => { setBuildMode(b.id); setDemolishMode(false); }}
           >
             {b.label}
           </button>
         ))}
-        <button
-          className="city-sim__btn"
-          onClick={toggleDayNight}
-        >
-          {isNight ? '☀️ Day' : '🌙 Night'}
+        <button style={btnDemolish} onClick={() => setDemolishMode(d => !d)}>
+          Demolish
         </button>
-        <span className="city-sim__pop">Pop: {population}</span>
+      </div>
+      {/* Toolbar row 2: controls + counter */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8, alignItems: 'center' }}>
+        <button style={btnBase} onClick={toggleDayNight}>
+          {isNight ? 'Day Mode' : 'Night Mode'}
+        </button>
+        <button style={btnBase} onClick={handleClear}>Clear</button>
+        <button style={btnBase} onClick={handleReset}>Reset</button>
+        <span style={{
+          color: '#64c8ff',
+          fontSize: 12,
+          fontFamily: 'monospace',
+          marginLeft: 'auto',
+          opacity: 0.7,
+        }}>
+          Buildings: {buildingCount}
+        </span>
       </div>
       <canvas
         ref={canvasRef}
-        style={{ width: '100%', maxWidth: 500, height: 'auto', borderRadius: 8, cursor: 'pointer', display: 'block', touchAction: 'none' }}
+        style={{
+          width: '100%',
+          maxWidth: W,
+          height: 'auto',
+          borderRadius: 6,
+          cursor: demolishMode ? 'crosshair' : 'pointer',
+          display: 'block',
+          touchAction: 'none',
+          border: '1px solid rgba(100,200,255,0.1)',
+        }}
       />
-      <p className="city-sim__hint">Tap or click on the skyline to place buildings</p>
+      <p style={{
+        color: 'rgba(100,200,255,0.4)',
+        fontSize: 11,
+        fontFamily: 'monospace',
+        textAlign: 'center',
+        margin: '6px 0 0 0',
+      }}>
+        {demolishMode
+          ? 'Click a building to demolish it'
+          : 'Click above the road to place buildings'}
+      </p>
     </div>
   );
 };
