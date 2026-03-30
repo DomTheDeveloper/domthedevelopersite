@@ -35,7 +35,7 @@ const Hero = ({ scrollY }) => {
           <span className="hero__tag">&lt;/code&gt;</span>
         </p>
         <div className="hero__cta-row">
-          <a href="#projects" className="hero__cta">View My Work</a>
+          <a href="#about" className="hero__cta">About Me</a>
           <a href="#contact" className="hero__cta hero__cta--outline">Get In Touch</a>
         </div>
         <div className="hero__scroll-indicator">

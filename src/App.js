@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Hero from './components/Hero';
 import About from './components/About';
-import Skills from './components/Skills';
-import Projects from './components/Projects';
 import Contact from './components/Contact';
 import ParticleField from './components/ParticleField';
 import Navbar from './components/Navbar';
@@ -23,8 +21,6 @@ function App() {
       <Navbar />
       <Hero scrollY={scrollY} />
       <About />
-      <Skills />
-      <Projects />
       <Contact />
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
