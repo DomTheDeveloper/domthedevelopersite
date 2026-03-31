@@ -99,6 +99,8 @@ const ALIEN_QUOTES = [
   'YOUR PIXELS BELONG TO US', 'BEEP BOOP BOOP',
 ];
 
+const SHAKE_PAD = 30; // extra canvas padding to prevent gaps during shake
+
 const AlienAbduction = ({ onDone }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
@@ -106,13 +108,22 @@ const AlienAbduction = ({ onDone }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
-    const resize = () => {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+    const pad = SHAKE_PAD;
+    let sw = window.innerWidth;
+    let sh = window.innerHeight;
+    let w, h;
+    const setSize = () => {
+      sw = window.innerWidth;
+      sh = window.innerHeight;
+      w = sw + pad * 2;
+      h = sh + pad * 2;
+      canvas.width = w;
+      canvas.height = h;
     };
+    setSize();
+    const resize = () => setSize();
     window.addEventListener('resize', resize);
+    const ox = pad, oy = pad;
 
     // 8+ UFOs from different directions
     const ufos = Array.from({ length: 10 }, (_, i) => {
@@ -121,10 +132,10 @@ const AlienAbduction = ({ onDone }) => {
       const fromTop = i % 4 === 2;
       const fromBottom = i % 4 === 3;
       return {
-        x: fromLeft ? -120 : fromRight ? w + 120 : rand(50, w - 50),
-        y: fromTop ? -120 : fromBottom ? h + 120 : rand(-200, -60),
-        targetX: rand(100, w - 100),
-        targetY: rand(60, h * 0.35),
+        x: fromLeft ? -120 : fromRight ? sw + 120 : rand(50, sw - 50),
+        y: fromTop ? -120 : fromBottom ? sh + 120 : rand(-200, -60),
+        targetX: rand(100, sw - 100),
+        targetY: rand(60, sh * 0.35),
         size: rand(35, 80),
         speed: rand(1.5, 3),
         wobble: rand(0, Math.PI * 2),
@@ -135,9 +146,9 @@ const AlienAbduction = ({ onDone }) => {
 
     // 20+ aliens
     const aliens = Array.from({ length: 24 }, () => ({
-      x: rand(20, w - 20),
-      y: h + rand(20, 200),
-      targetY: rand(h * 0.25, h * 0.85),
+      x: rand(20, sw - 20),
+      y: sh + rand(20, 200),
+      targetY: rand(sh * 0.25, sh * 0.85),
       size: rand(14, 30),
       speed: rand(0.5, 2),
       frame: 0,
@@ -150,7 +161,7 @@ const AlienAbduction = ({ onDone }) => {
 
     // Stars for space background
     const stars = Array.from({ length: 200 }, () => ({
-      x: rand(0, w), y: rand(0, h), size: rand(0.5, 2.5), twinkle: rand(0, Math.PI * 2),
+      x: rand(0, sw), y: rand(0, sh), size: rand(0.5, 2.5), twinkle: rand(0, Math.PI * 2),
     }));
 
     let time = 0;
@@ -159,6 +170,7 @@ const AlienAbduction = ({ onDone }) => {
     const origTransform = document.body.style.transform;
     const origFilter = document.body.style.filter;
     let shakeAmount = 0;
+    document.documentElement.style.overflow = 'hidden';
     let frameCount = 0;
     let prevPhase = 0;
 
@@ -219,14 +231,14 @@ const AlienAbduction = ({ onDone }) => {
       if (ufo.beamOn) {
         ufo.beamPulse += 0.05;
         const beamAlpha = 0.15 + Math.sin(ufo.beamPulse) * 0.1;
-        const grad2 = ctx.createLinearGradient(x, y, x, h);
+        const grad2 = ctx.createLinearGradient(x, y, x, sh);
         grad2.addColorStop(0, `rgba(100, 255, 150, ${beamAlpha + 0.15})`);
         grad2.addColorStop(1, `rgba(100, 255, 150, 0)`);
         ctx.fillStyle = grad2;
         ctx.beginPath();
         ctx.moveTo(x - size * 0.3, y + size * 0.15);
-        ctx.lineTo(x - size * 1.0, h);
-        ctx.lineTo(x + size * 1.0, h);
+        ctx.lineTo(x - size * 1.0, sh);
+        ctx.lineTo(x + size * 1.0, sh);
         ctx.lineTo(x + size * 0.3, y + size * 0.15);
         ctx.closePath();
         ctx.fill();
@@ -234,9 +246,9 @@ const AlienAbduction = ({ onDone }) => {
         ctx.strokeStyle = `rgba(100, 255, 150, ${beamAlpha * 0.5})`;
         ctx.lineWidth = 1;
         for (let sl = 0; sl < 12; sl++) {
-          const slY = y + ((time * 80 + sl * 40) % (h - y));
-          if (slY > y && slY < h) {
-            const ratio = (slY - y) / (h - y);
+          const slY = y + ((time * 80 + sl * 40) % (sh - y));
+          if (slY > y && slY < sh) {
+            const ratio = (slY - y) / (sh - y);
             const slW = size * 0.3 + ratio * size * 0.7;
             ctx.beginPath();
             ctx.moveTo(x - slW, slY);
@@ -251,6 +263,8 @@ const AlienAbduction = ({ onDone }) => {
       time += 0.016;
       phaseTimer += 0.016;
       ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(ox, oy);
 
       // Phase transitions
       if (phase === 0 && phaseTimer > 2.5) { phase = 1; phaseTimer = 0; }
@@ -271,7 +285,7 @@ const AlienAbduction = ({ onDone }) => {
       if (phase >= 1) {
         const bgAlpha = phase === 2 ? Math.min(0.4, phaseTimer * 0.15) : (phase === 3 ? Math.max(0, 0.4 - phaseTimer * 0.2) : Math.min(0.2, phaseTimer * 0.05));
         ctx.fillStyle = `rgba(0, 5, 15, ${bgAlpha})`;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(-pad, -pad, w, h);
         for (const star of stars) {
           star.twinkle += 0.03;
           const a = (0.3 + Math.sin(star.twinkle) * 0.3) * (bgAlpha * 3);
@@ -285,7 +299,7 @@ const AlienAbduction = ({ onDone }) => {
       // Green tint during peak
       if (phase === 2) {
         ctx.fillStyle = `rgba(0, 255, 50, ${0.03 + Math.sin(time * 4) * 0.02})`;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(-pad, -pad, w, h);
       }
 
       // UFOs
@@ -311,7 +325,7 @@ const AlienAbduction = ({ onDone }) => {
         if (phase === 0 || phase === 1) {
           alien.y += (alien.targetY - alien.y) * 0.018;
           alien.x += alien.walkDir * 0.5 + Math.sin(time * 2 + alien.x) * 0.3;
-          if (alien.x < 10 || alien.x > w - 10) alien.walkDir *= -1;
+          if (alien.x < 10 || alien.x > sw - 10) alien.walkDir *= -1;
         } else if (phase === 2) {
           alien.x += Math.sin(time * 3 + alien.x * 0.01) * 1.5;
           alien.y += Math.cos(time * 2 + alien.y * 0.01) * 0.8;
@@ -387,9 +401,10 @@ const AlienAbduction = ({ onDone }) => {
         ctx.font = `bold ${14 + Math.sin(time * 5) * 3}px monospace`;
         ctx.fillStyle = `rgba(100, 255, 150, ${0.5 + Math.sin(time * 3) * 0.3})`;
         ctx.textAlign = 'center';
-        ctx.fillText(msgs, w / 2, h - 40);
+        ctx.fillText(msgs, sw / 2, sh - 40);
       }
 
+      ctx.restore();
       animRef.current = requestAnimationFrame(draw);
     };
 
@@ -398,6 +413,7 @@ const AlienAbduction = ({ onDone }) => {
       cancelAnimationFrame(animRef.current);
       document.body.style.transform = origTransform || '';
       document.body.style.filter = origFilter || '';
+      document.documentElement.style.overflow = '';
       window.removeEventListener('resize', resize);
     };
   }, [onDone]);
@@ -407,10 +423,10 @@ const AlienAbduction = ({ onDone }) => {
       ref={canvasRef}
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
+        top: -SHAKE_PAD,
+        left: -SHAKE_PAD,
+        width: `calc(100vw + ${SHAKE_PAD * 2}px)`,
+        height: `calc(100vh + ${SHAKE_PAD * 2}px)`,
         pointerEvents: 'none',
         zIndex: 99990,
       }}
@@ -522,7 +538,7 @@ const DestructModal = ({ stage, onAbort, onInitiate, onExecute }) => {
             </p>
             <div style={btnRow}>
               <button style={abortBtn} onClick={onAbort}>ABORT MISSION</button>
-              <button style={armBtn} onClick={onInitiate}>ARM WARHEADS</button>
+              <button style={armBtn} onClick={onInitiate}>ARM SEQUENCE</button>
             </div>
           </div>
         ) : (
@@ -569,8 +585,13 @@ const SelfDestruct = ({ onRestore }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
+    const pad = SHAKE_PAD;
+    let sw = window.innerWidth;
+    let sh = window.innerHeight;
+    let w = sw + pad * 2;
+    let h = sh + pad * 2;
+    canvas.width = w;
+    canvas.height = h;
 
     // Web Audio API setup
     let audioCtx = null;
@@ -662,7 +683,7 @@ const SelfDestruct = ({ onRestore }) => {
     const timers = [];
     const scheduleExplosion = (delay) => {
       timers.push(setTimeout(() => {
-        if (!done) spawnExplosion(rand(30, w - 30), rand(30, h - 30), false);
+        if (!done) spawnExplosion(rand(30, sw - 30), rand(30, sh - 30), false);
       }, delay));
     };
     for (let i = 0; i < 65; i++) {
@@ -672,13 +693,14 @@ const SelfDestruct = ({ onRestore }) => {
     // Massive central explosion at ~8s
     timers.push(setTimeout(() => {
       if (!done) {
-        spawnExplosion(w / 2, h / 2, true);
-        spawnExplosion(w / 2 + rand(-50, 50), h / 2 + rand(-50, 50), true);
+        spawnExplosion(sw / 2, sh / 2, true);
+        spawnExplosion(sw / 2 + rand(-50, 50), sh / 2 + rand(-50, 50), true);
       }
     }, 8000));
 
     const origTransform = document.body.style.transform;
     let shake = 0;
+    document.documentElement.style.overflow = 'hidden';
 
     // Progressive website destruction - dissolve sections
     const sectionSelectors = [
@@ -713,8 +735,8 @@ const SelfDestruct = ({ onRestore }) => {
     const cracks = [];
     for (let i = 0; i < 18; i++) {
       timers.push(setTimeout(() => {
-        const cx = rand(0, w);
-        const cy = rand(0, h);
+        const cx = rand(0, sw);
+        const cy = rand(0, sh);
         const segs = randInt(5, 12);
         const pts = [{ x: cx, y: cy }];
         for (let s = 0; s < segs; s++) {
@@ -732,18 +754,20 @@ const SelfDestruct = ({ onRestore }) => {
     // Shockwave ring at ~8s
     let shockwave = null;
     timers.push(setTimeout(() => {
-      shockwave = { x: w / 2, y: h / 2, radius: 0, maxRadius: Math.max(w, h), opacity: 1 };
+      shockwave = { x: sw / 2, y: sh / 2, radius: 0, maxRadius: Math.max(sw, sh), opacity: 1 };
     }, 8000));
 
     const draw = () => {
       if (done) return;
       time += 0.016;
       ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(pad, pad);
 
       // Red siren flash
       if (sirenOn && time < 9.5) {
         ctx.fillStyle = `rgba(255, 0, 0, ${Math.min(0.15, 0.03 + time * 0.012)})`;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(-pad, -pad, w, h);
       }
 
       // Draw cracks
@@ -802,7 +826,7 @@ const SelfDestruct = ({ onRestore }) => {
         ctx.font = 'bold 22px monospace';
         ctx.fillStyle = `rgba(255, ${Math.max(0, 100 - time * 10)}, 0, 0.9)`;
         ctx.textAlign = 'center';
-        ctx.fillText(`CORE MELTDOWN IN ${remaining.toFixed(1)}s`, w / 2, 50);
+        ctx.fillText(`CORE MELTDOWN IN ${remaining.toFixed(1)}s`, sw / 2, 50);
       }
 
       // Page shake - intensifies, up to 20px
@@ -818,11 +842,12 @@ const SelfDestruct = ({ onRestore }) => {
       if (time > 9) {
         const flashAlpha = Math.min(1, (time - 9) * 1.0);
         ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(-pad, -pad, w, h);
       }
 
       if (time > 10.5) {
         done = true;
+        ctx.restore();
         document.body.style.transform = origTransform || '';
         // Stop audio
         try {
@@ -833,6 +858,7 @@ const SelfDestruct = ({ onRestore }) => {
         return;
       }
 
+      ctx.restore();
       animRef.current = requestAnimationFrame(draw);
     };
 
@@ -845,6 +871,7 @@ const SelfDestruct = ({ onRestore }) => {
       if (alarmInterval) clearInterval(alarmInterval);
       timers.forEach(t => clearTimeout(t));
       document.body.style.transform = origTransform || '';
+      document.documentElement.style.overflow = '';
       // Restore dissolved sections
       for (const orig of dissolvedElements) {
         orig.el.style.transition = orig.transition;
@@ -896,7 +923,9 @@ const SelfDestruct = ({ onRestore }) => {
     <canvas
       ref={canvasRef}
       style={{
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        position: 'fixed', top: -SHAKE_PAD, left: -SHAKE_PAD,
+        width: `calc(100vw + ${SHAKE_PAD * 2}px)`,
+        height: `calc(100vh + ${SHAKE_PAD * 2}px)`,
         pointerEvents: 'none', zIndex: 99998,
       }}
     />

@@ -1256,6 +1256,14 @@
   .experimental__grid {
     grid-template-columns: 1fr;
   }
+
+  .experimental__card {
+    padding: 1.2rem 1rem;
+  }
+
+  .experimental__card-icon {
+    font-size: 2rem;
+  }
 }
 
 /* ========== EXPERIMENTAL ========== */
