@@ -15,7 +15,6 @@ const Navbar = () => {
     { label: 'Projects', href: 'projects' },
     { label: 'Arcade', href: 'arcade' },
     { label: 'Tech Zone', href: 'techzone' },
-    { label: 'Experimental', href: 'experimental' },
     { label: 'Contact', href: 'contact' },
   ];
 
@@ -39,7 +38,6 @@ const Navbar = () => {
             <li key={link.href}>
               <a
                 href={`#${link.href}`}
-                className={link.href === 'experimental' ? 'navbar__link--experimental' : ''}
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}

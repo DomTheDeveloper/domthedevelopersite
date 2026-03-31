@@ -71,16 +71,6 @@
 .navbar__links a:hover { color: var(--accent); }
 .navbar__links a:hover::after { width: 100%; }
 
-.navbar__link--experimental {
-  color: #ff4444 !important;
-}
-.navbar__link--experimental:hover {
-  color: #ff6b6b !important;
-}
-.navbar__link--experimental::after {
-  background: #ff4444 !important;
-}
-
 .navbar__burger {
   display: none;
   flex-direction: column;
@@ -491,6 +481,23 @@
   background: var(--accent-glow);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.techzone__tab--danger {
+  border-color: rgba(255, 68, 68, 0.25);
+  color: #ff4444;
+}
+
+.techzone__tab--danger:hover {
+  border-color: rgba(255, 68, 68, 0.5);
+  color: #ff6b6b;
+  background: rgba(255, 68, 68, 0.08);
+}
+
+.techzone__tab--danger-active {
+  background: rgba(255, 68, 68, 0.15) !important;
+  border-color: #ff4444 !important;
+  color: #ff4444 !important;
 }
 
 .techzone__tab-icon {

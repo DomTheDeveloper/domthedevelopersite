@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import Experimental from './Experimental';
 
 const Constellations = lazy(() => import('./techzone/Constellations'));
 const InteractiveTerminal = lazy(() => import('./techzone/InteractiveTerminal'));
@@ -22,6 +23,7 @@ const items = [
   { id: 'synth', name: 'Synth Pad', icon: '♪', desc: 'Play musical notes. Click or drag across pads for melodies.', component: SynthPad },
   { id: 'typing', name: 'Typing Race', icon: '⌨', desc: 'Test your typing speed with code snippets.', component: TypingRace },
   { id: 'particles', name: 'Particle Lab', icon: '✸', desc: 'Attract, repel, vortex, or explode 300 particles. Hold click to interact.', component: ParticlePlayground },
+  { id: 'experimental', name: 'Experimental', icon: '⚠', desc: 'Dangerous buttons. Proceed at your own risk.', component: Experimental, danger: true },
 ];
 
 const Loader = () => (
@@ -60,7 +62,7 @@ const TechZone = () => {
             {items.map(item => (
               <button
                 key={item.id}
-                className={`techzone__tab ${activeId === item.id ? 'techzone__tab--active' : ''}`}
+                className={`techzone__tab ${activeId === item.id ? 'techzone__tab--active' : ''} ${item.danger ? 'techzone__tab--danger' : ''} ${activeId === item.id && item.danger ? 'techzone__tab--danger-active' : ''}`}
                 onClick={() => setActiveId(item.id)}
               >
                 <span className="techzone__tab-icon">{item.icon}</span>

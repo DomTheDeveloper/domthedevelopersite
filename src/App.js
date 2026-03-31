@@ -4,7 +4,6 @@ import About from './components/About';
 import Projects from './components/Projects';
 import Arcade from './components/Arcade';
 import TechZone from './components/TechZone';
-import Experimental from './components/Experimental';
 import Contact from './components/Contact';
 import ParticleField from './components/ParticleField';
 import ClickSpark from './components/ClickSpark';
@@ -30,7 +29,6 @@ function App() {
       <Projects />
       <Arcade />
       <TechZone />
-      <Experimental />
       <Contact />
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
