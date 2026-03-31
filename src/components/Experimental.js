@@ -159,6 +159,8 @@ const AlienAbduction = ({ onDone }) => {
     const origTransform = document.body.style.transform;
     const origFilter = document.body.style.filter;
     let shakeAmount = 0;
+    let frameCount = 0;
+    let prevPhase = 0;
 
     const drawPixelAlien = (x, y, s, color, frame) => {
       const p = s / 8;
@@ -254,6 +256,10 @@ const AlienAbduction = ({ onDone }) => {
       if (phase === 0 && phaseTimer > 2.5) { phase = 1; phaseTimer = 0; }
       if (phase === 1 && phaseTimer > 4) { phase = 2; phaseTimer = 0; }
       if (phase === 2 && phaseTimer > 3) { phase = 3; phaseTimer = 0; }
+      if (phase === 3 && prevPhase !== 3) {
+        document.body.style.filter = '';
+      }
+      prevPhase = phase;
       if (phase === 3 && phaseTimer > 2.5) {
         document.body.style.transform = origTransform || '';
         document.body.style.filter = origFilter || '';
@@ -331,12 +337,10 @@ const AlienAbduction = ({ onDone }) => {
           const bx = alien.x - tw / 2;
           const by = alien.y - alien.size - 18;
           ctx.fillStyle = `rgba(0, 0, 0, ${bubbleAlpha * 0.8})`;
+          ctx.fillRect(bx, by - 16, tw, 20);
           ctx.strokeStyle = `rgba(100, 255, 150, ${bubbleAlpha})`;
           ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.roundRect(bx, by - 16, tw, 20, 4);
-          ctx.fill();
-          ctx.stroke();
+          ctx.strokeRect(bx, by - 16, tw, 20);
           ctx.fillStyle = `rgba(100, 255, 150, ${bubbleAlpha})`;
           ctx.textAlign = 'center';
           ctx.fillText(alien.speech, alien.x, by - 2);
@@ -344,24 +348,27 @@ const AlienAbduction = ({ onDone }) => {
         }
       }
 
-      // Glitch effect: RGB offset on body
+      // Glitch effect: RGB offset on body (every 5th frame)
+      frameCount++;
       if (phase === 1 || phase === 2) {
-        const glitchIntensity = phase === 2 ? 4 : 2;
-        if (Math.random() < 0.15) {
+        if (frameCount % 5 === 0) {
+          const glitchIntensity = phase === 2 ? 4 : 2;
           const rx = (Math.random() - 0.5) * glitchIntensity;
           const ry = (Math.random() - 0.5) * glitchIntensity;
           document.body.style.filter = `drop-shadow(${rx}px 0 0 rgba(255,0,0,0.3)) drop-shadow(${-rx}px ${ry}px 0 rgba(0,255,0,0.3)) drop-shadow(0 ${-ry}px 0 rgba(0,0,255,0.3))`;
         }
+      } else if (phase === 3) {
+        document.body.style.filter = '';
       } else {
         document.body.style.filter = origFilter || '';
       }
 
       // Page shake + tilt
       if (phase >= 1 && phase <= 2) {
-        shakeAmount = Math.min(shakeAmount + 0.15, phase === 2 ? 10 : 5);
+        shakeAmount = Math.min(shakeAmount + 0.15, phase === 2 ? 6 : 4);
         const sx = (Math.random() - 0.5) * shakeAmount;
         const sy = (Math.random() - 0.5) * shakeAmount;
-        const rot = (Math.random() - 0.5) * (phase === 2 ? 1.5 : 0.5);
+        const rot = (Math.random() - 0.5) * (phase === 2 ? 0.8 : 0.4);
         document.body.style.transform = `translate(${sx}px, ${sy}px) rotate(${rot}deg)`;
       } else if (phase === 3) {
         shakeAmount = Math.max(0, shakeAmount - 0.3);
@@ -414,7 +421,7 @@ const AlienAbduction = ({ onDone }) => {
 /* ══════════════════════════════════════════════
    DESTRUCT MODAL - custom confirm dialogs
    ══════════════════════════════════════════════ */
-const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onInitiate, onExecute }) => {
+const DestructModal = ({ stage, onAbort, onInitiate, onExecute }) => {
   const modalOverlay = {
     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
     background: 'rgba(0, 0, 0, 0.85)', zIndex: 99995,
@@ -431,7 +438,7 @@ const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onIni
   const panelBase = {
     position: 'relative', border: '2px solid #ff2222', borderRadius: 8,
     background: 'linear-gradient(180deg, #1a0000 0%, #0a0a0a 100%)',
-    padding: '2rem 2.5rem', maxWidth: 480, width: '90%',
+    padding: '2rem 2.5rem', maxWidth: '90vw', width: 480,
     boxShadow: '0 0 40px rgba(255, 0, 0, 0.3), inset 0 0 60px rgba(255, 0, 0, 0.05)',
     zIndex: 2,
   };
@@ -439,7 +446,7 @@ const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onIni
   const titleStyle = {
     color: '#ff2222', fontSize: '1.3rem', fontWeight: 'bold', textAlign: 'center',
     marginBottom: '1.2rem', textShadow: '0 0 10px rgba(255, 0, 0, 0.5)',
-    letterSpacing: '0.1em',
+    letterSpacing: '0.1em', wordBreak: 'break-word',
   };
 
   const warningTriangles = {
@@ -450,44 +457,39 @@ const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onIni
 
   const textStyle = {
     color: '#cc8888', fontSize: '0.85rem', textAlign: 'center',
-    lineHeight: 1.6, marginBottom: '1.5rem',
+    lineHeight: 1.6, marginBottom: '1.5rem', wordBreak: 'break-word',
   };
 
   const btnRow = {
-    display: 'flex', justifyContent: 'center', gap: '1rem',
+    display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap',
   };
 
   const abortBtn = {
     fontFamily: 'monospace', fontSize: '0.85rem', padding: '0.7rem 1.5rem',
     background: '#333', color: '#aaa', border: '1px solid #555',
-    borderRadius: 4, cursor: 'pointer',
+    borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap',
   };
 
-  const initiateBtn = {
+  const armBtn = {
     fontFamily: 'monospace', fontSize: '0.85rem', padding: '0.7rem 1.5rem',
     background: '#440000', color: '#ff4444', border: '1px solid #ff2222',
-    borderRadius: 4, cursor: 'pointer',
+    borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap',
     boxShadow: '0 0 15px rgba(255, 0, 0, 0.4)',
     animation: 'pulse-red 1.5s ease-in-out infinite',
   };
 
-  const inputStyle = {
-    fontFamily: 'monospace', fontSize: '1rem', padding: '0.6rem 1rem',
-    background: '#111', color: '#ff4444', border: '1px solid #ff2222',
-    borderRadius: 4, width: '100%', textAlign: 'center',
-    outline: 'none', marginBottom: '1rem', boxSizing: 'border-box',
-    letterSpacing: '0.2em',
+  const standDownBtn = {
+    fontFamily: 'monospace', fontSize: '1rem', padding: '1rem 2rem',
+    background: '#333', color: '#aaa', border: '1px solid #555',
+    borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap',
   };
 
-  const executeBtn = {
-    fontFamily: 'monospace', fontSize: '0.9rem', padding: '0.8rem 2rem',
-    background: confirmText === 'DESTROY' ? '#660000' : '#222',
-    color: confirmText === 'DESTROY' ? '#ff2222' : '#555',
-    border: `1px solid ${confirmText === 'DESTROY' ? '#ff2222' : '#444'}`,
-    borderRadius: 4,
-    cursor: confirmText === 'DESTROY' ? 'pointer' : 'not-allowed',
-    boxShadow: confirmText === 'DESTROY' ? '0 0 25px rgba(255, 0, 0, 0.6)' : 'none',
-    width: '100%',
+  const detonateBtn = {
+    fontFamily: 'monospace', fontSize: '1rem', padding: '1rem 2rem',
+    background: '#660000', color: '#ff2222', border: '1px solid #ff2222',
+    borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap',
+    boxShadow: '0 0 25px rgba(255, 0, 0, 0.6)',
+    animation: 'pulse-red-intense 1s ease-in-out infinite',
   };
 
   return (
@@ -497,8 +499,15 @@ const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onIni
           0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
           50% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
         }
+        @keyframes pulse-red-intense {
+          0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); }
+          50% { box-shadow: 0 0 50px rgba(255, 0, 0, 1), 0 0 80px rgba(255, 0, 0, 0.4); }
+        }
+        @media (max-width: 600px) {
+          .destruct-panel { padding: 1.5rem !important; }
+        }
       `}</style>
-      <div style={panelBase}>
+      <div style={panelBase} className="destruct-panel">
         <div style={scanlineOverlay} />
         {stage === 1 ? (
           <div style={{ position: 'relative', zIndex: 2 }}>
@@ -513,35 +522,31 @@ const DestructModal = ({ stage, confirmText, onConfirmTextChange, onAbort, onIni
             </p>
             <div style={btnRow}>
               <button style={abortBtn} onClick={onAbort}>ABORT MISSION</button>
-              <button style={initiateBtn} onClick={onInitiate}>INITIATE SEQUENCE</button>
+              <button style={armBtn} onClick={onInitiate}>ARM WARHEADS</button>
             </div>
           </div>
         ) : (
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ ...titleStyle, color: '#ff0000', fontSize: '1.4rem' }}>
-              FINAL AUTHORIZATION REQUIRED
+              FINAL CONFIRMATION
             </div>
-            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '2rem' }}>&#128272;</span>
+            <div style={{
+              textAlign: 'center', marginBottom: '1.5rem', padding: '1rem',
+              background: 'rgba(255, 0, 0, 0.08)', border: '1px solid #ff2222',
+              borderRadius: 4,
+            }}>
+              <div style={{
+                color: '#ff2222', fontSize: '1.3rem', fontWeight: 'bold',
+                letterSpacing: '0.15em', textShadow: '0 0 15px rgba(255, 0, 0, 0.7)',
+                fontFamily: 'monospace', wordBreak: 'break-word',
+              }}>
+                DESTRUCT SEQUENCE ARMED
+              </div>
             </div>
-            <p style={{ ...textStyle, color: '#ff6666' }}>
-              Type <span style={{ color: '#ff2222', fontWeight: 'bold', letterSpacing: '0.15em' }}>DESTROY</span> to confirm:
-            </p>
-            <input
-              type="text"
-              value={confirmText}
-              onChange={(e) => onConfirmTextChange(e.target.value)}
-              style={inputStyle}
-              autoFocus
-              placeholder="_ _ _ _ _ _ _"
-            />
-            <button
-              style={executeBtn}
-              onClick={onExecute}
-              disabled={confirmText !== 'DESTROY'}
-            >
-              EXECUTE
-            </button>
+            <div style={btnRow}>
+              <button style={standDownBtn} onClick={onAbort}>STAND DOWN</button>
+              <button style={detonateBtn} onClick={onExecute}>DETONATE</button>
+            </div>
           </div>
         )}
       </div>
@@ -674,6 +679,35 @@ const SelfDestruct = ({ onRestore }) => {
 
     const origTransform = document.body.style.transform;
     let shake = 0;
+
+    // Progressive website destruction - dissolve sections
+    const sectionSelectors = [
+      { sel: '.footer', delay: 1000 },
+      { sel: '#contact', delay: 2500 },
+      { sel: '#techzone', delay: 4000 },
+      { sel: '#projects', delay: 5500 },
+      { sel: '#about', delay: 7000 },
+      { sel: '#hero', delay: 8500 },
+      { sel: '.navbar', delay: 8500 },
+    ];
+    const dissolvedElements = [];
+    for (const { sel, delay } of sectionSelectors) {
+      timers.push(setTimeout(() => {
+        const el = document.querySelector(sel);
+        if (el) {
+          const origStyles = {
+            el,
+            transition: el.style.transition,
+            opacity: el.style.opacity,
+            transform: el.style.transform,
+          };
+          dissolvedElements.push(origStyles);
+          el.style.transition = 'opacity 1.5s, transform 1.5s';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(20px) scale(0.95)';
+        }
+      }, delay));
+    }
 
     // Screen cracks
     const cracks = [];
@@ -811,6 +845,12 @@ const SelfDestruct = ({ onRestore }) => {
       if (alarmInterval) clearInterval(alarmInterval);
       timers.forEach(t => clearTimeout(t));
       document.body.style.transform = origTransform || '';
+      // Restore dissolved sections
+      for (const orig of dissolvedElements) {
+        orig.el.style.transition = orig.transition;
+        orig.el.style.opacity = orig.opacity;
+        orig.el.style.transform = orig.transform;
+      }
       try {
         if (rumbleOsc) rumbleOsc.stop();
         if (audioCtx && audioCtx.state !== 'closed') audioCtx.close();
@@ -871,30 +911,24 @@ const Experimental = () => {
   const [abducting, setAbducting] = useState(false);
   const [showDestructModal, setShowDestructModal] = useState(0);
   const [destructing, setDestructing] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
 
   const stopWeather = useCallback(() => setWeather(null), []);
   const stopAbduction = useCallback(() => setAbducting(false), []);
 
   const handleDestruct = () => {
     setShowDestructModal(1);
-    setConfirmText('');
   };
 
   const handleAbort = () => {
     setShowDestructModal(0);
-    setConfirmText('');
   };
 
   const handleInitiate = () => {
     setShowDestructModal(2);
-    setConfirmText('');
   };
 
   const handleExecute = () => {
-    if (confirmText !== 'DESTROY') return;
     setShowDestructModal(0);
-    setConfirmText('');
     setDestructing(true);
   };
 
@@ -909,12 +943,13 @@ const Experimental = () => {
         <div className="experimental__card">
           <div className="experimental__card-icon">{weather === 'snow' ? '\u2744' : '\uD83C\uDF27'}</div>
           <h3 className="experimental__card-title">Weather Machine</h3>
-          <p className="experimental__card-desc">
+          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
             Make it rain or snow across the entire website.
           </p>
           <div className="experimental__card-actions">
             <button
               className="experimental__btn experimental__btn--rain"
+              style={{ whiteSpace: 'nowrap' }}
               onClick={() => setWeather(weather === 'rain' ? null : 'rain')}
               disabled={abducting || destructing}
             >
@@ -922,6 +957,7 @@ const Experimental = () => {
             </button>
             <button
               className="experimental__btn experimental__btn--snow"
+              style={{ whiteSpace: 'nowrap' }}
               onClick={() => setWeather(weather === 'snow' ? null : 'snow')}
               disabled={abducting || destructing}
             >
@@ -934,12 +970,13 @@ const Experimental = () => {
         <div className="experimental__card">
           <div className="experimental__card-icon">{'\uD83D\uDC7E'}</div>
           <h3 className="experimental__card-title">Alien Abduction</h3>
-          <p className="experimental__card-desc">
+          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
             Pixelated aliens and UFOs invade and abduct the website.
           </p>
           <div className="experimental__card-actions">
             <button
               className="experimental__btn experimental__btn--alien"
+              style={{ whiteSpace: 'nowrap' }}
               onClick={() => setAbducting(true)}
               disabled={abducting || destructing}
             >
@@ -952,12 +989,13 @@ const Experimental = () => {
         <div className="experimental__card experimental__card--danger">
           <div className="experimental__card-icon">{'\uD83D\uDCA3'}</div>
           <h3 className="experimental__card-title">Self Destruct</h3>
-          <p className="experimental__card-desc">
+          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
             Blow up the entire website. You have been warned.
           </p>
           <div className="experimental__card-actions">
             <button
               className="experimental__btn experimental__btn--destruct"
+              style={{ whiteSpace: 'nowrap' }}
               onClick={handleDestruct}
               disabled={abducting || destructing}
             >
@@ -979,8 +1017,6 @@ const Experimental = () => {
       {showDestructModal > 0 && ReactDOM.createPortal(
         <DestructModal
           stage={showDestructModal}
-          confirmText={confirmText}
-          onConfirmTextChange={setConfirmText}
           onAbort={handleAbort}
           onInitiate={handleInitiate}
           onExecute={handleExecute}
