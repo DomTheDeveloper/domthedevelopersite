@@ -167,8 +167,9 @@ const AlienAbduction = ({ onDone }) => {
     let time = 0;
     let phase = 0; // 0=enter, 1=abduct, 2=peak, 3=exit
     let phaseTimer = 0;
-    const origTransform = document.body.style.transform;
-    const origFilter = document.body.style.filter;
+    const appEl = document.querySelector('.App');
+    const origTransform = appEl ? appEl.style.transform : '';
+    const origFilter = appEl ? appEl.style.filter : '';
     let shakeAmount = 0;
     document.documentElement.style.overflow = 'hidden';
     let frameCount = 0;
@@ -271,12 +272,11 @@ const AlienAbduction = ({ onDone }) => {
       if (phase === 1 && phaseTimer > 4) { phase = 2; phaseTimer = 0; }
       if (phase === 2 && phaseTimer > 3) { phase = 3; phaseTimer = 0; }
       if (phase === 3 && prevPhase !== 3) {
-        document.body.style.filter = '';
+        if (appEl) appEl.style.filter = '';
       }
       prevPhase = phase;
       if (phase === 3 && phaseTimer > 2.5) {
-        document.body.style.transform = origTransform || '';
-        document.body.style.filter = origFilter || '';
+        if (appEl) { appEl.style.transform = origTransform; appEl.style.filter = origFilter; }
         onDone();
         return;
       }
@@ -369,12 +369,12 @@ const AlienAbduction = ({ onDone }) => {
           const glitchIntensity = phase === 2 ? 4 : 2;
           const rx = (Math.random() - 0.5) * glitchIntensity;
           const ry = (Math.random() - 0.5) * glitchIntensity;
-          document.body.style.filter = `drop-shadow(${rx}px 0 0 rgba(255,0,0,0.3)) drop-shadow(${-rx}px ${ry}px 0 rgba(0,255,0,0.3)) drop-shadow(0 ${-ry}px 0 rgba(0,0,255,0.3))`;
+          if (appEl) appEl.style.filter = `drop-shadow(${rx}px 0 0 rgba(255,0,0,0.3)) drop-shadow(${-rx}px ${ry}px 0 rgba(0,255,0,0.3)) drop-shadow(0 ${-ry}px 0 rgba(0,0,255,0.3))`;
         }
       } else if (phase === 3) {
-        document.body.style.filter = '';
+        if (appEl) appEl.style.filter = '';
       } else {
-        document.body.style.filter = origFilter || '';
+        if (appEl) appEl.style.filter = origFilter;
       }
 
       // Page shake + tilt
@@ -383,14 +383,14 @@ const AlienAbduction = ({ onDone }) => {
         const sx = (Math.random() - 0.5) * shakeAmount;
         const sy = (Math.random() - 0.5) * shakeAmount;
         const rot = (Math.random() - 0.5) * (phase === 2 ? 0.8 : 0.4);
-        document.body.style.transform = `translate(${sx}px, ${sy}px) rotate(${rot}deg)`;
+        if (appEl) appEl.style.transform = `translate(${sx}px, ${sy}px) rotate(${rot}deg)`;
       } else if (phase === 3) {
         shakeAmount = Math.max(0, shakeAmount - 0.3);
         const sx = (Math.random() - 0.5) * shakeAmount;
         const sy = (Math.random() - 0.5) * shakeAmount;
-        document.body.style.transform = `translate(${sx}px, ${sy}px)`;
+        if (appEl) appEl.style.transform = `translate(${sx}px, ${sy}px)`;
       } else {
-        document.body.style.transform = origTransform || '';
+        if (appEl) appEl.style.transform = origTransform;
       }
 
       // Abduction text
@@ -411,8 +411,7 @@ const AlienAbduction = ({ onDone }) => {
     animRef.current = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(animRef.current);
-      document.body.style.transform = origTransform || '';
-      document.body.style.filter = origFilter || '';
+      if (appEl) { appEl.style.transform = origTransform; appEl.style.filter = origFilter; }
       document.documentElement.style.overflow = '';
       window.removeEventListener('resize', resize);
     };
@@ -698,7 +697,8 @@ const SelfDestruct = ({ onRestore }) => {
       }
     }, 8000));
 
-    const origTransform = document.body.style.transform;
+    const appEl = document.querySelector('.App');
+    const origTransform = appEl ? appEl.style.transform : '';
     let shake = 0;
     document.documentElement.style.overflow = 'hidden';
 
@@ -835,7 +835,7 @@ const SelfDestruct = ({ onRestore }) => {
         const sx = (Math.random() - 0.5) * shake;
         const sy = (Math.random() - 0.5) * shake;
         const rot = (Math.random() - 0.5) * (shake * 0.08);
-        document.body.style.transform = `translate(${sx}px, ${sy}px) rotate(${rot}deg)`;
+        if (appEl) appEl.style.transform = `translate(${sx}px, ${sy}px) rotate(${rot}deg)`;
       }
 
       // White flash near end
@@ -848,7 +848,7 @@ const SelfDestruct = ({ onRestore }) => {
       if (time > 10.5) {
         done = true;
         ctx.restore();
-        document.body.style.transform = origTransform || '';
+        if (appEl) appEl.style.transform = origTransform;
         // Stop audio
         try {
           if (rumbleOsc) rumbleOsc.stop();
@@ -870,7 +870,7 @@ const SelfDestruct = ({ onRestore }) => {
       clearInterval(sirenInterval);
       if (alarmInterval) clearInterval(alarmInterval);
       timers.forEach(t => clearTimeout(t));
-      document.body.style.transform = origTransform || '';
+      if (appEl) appEl.style.transform = origTransform;
       document.documentElement.style.overflow = '';
       // Restore dissolved sections
       for (const orig of dissolvedElements) {
