@@ -1256,6 +1256,8 @@
   .experimental__grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .experimental__card {
@@ -1265,6 +1267,9 @@
     align-items: center;
     gap: 0.75rem;
     text-align: left;
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .experimental__card-icon {
@@ -1283,6 +1288,9 @@
   .experimental__card-title {
     font-size: 0.85rem;
     margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .experimental__card-desc {
@@ -1325,12 +1333,14 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
   .experimental__grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
