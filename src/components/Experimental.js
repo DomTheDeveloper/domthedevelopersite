@@ -971,65 +971,67 @@ const Experimental = () => {
         {/* WEATHER */}
         <div className="experimental__card">
           <div className="experimental__card-icon">{weather === 'snow' ? '\u2744' : '\uD83C\uDF27'}</div>
-          <h3 className="experimental__card-title">Weather Machine</h3>
-          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
-            Make it rain or snow across the entire website.
-          </p>
-          <div className="experimental__card-actions">
-            <button
-              className="experimental__btn experimental__btn--rain"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={() => setWeather(weather === 'rain' ? null : 'rain')}
-              disabled={abducting || destructing}
-            >
-              {weather === 'rain' ? 'Stop Rain' : '\uD83C\uDF27 Rain'}
-            </button>
-            <button
-              className="experimental__btn experimental__btn--snow"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={() => setWeather(weather === 'snow' ? null : 'snow')}
-              disabled={abducting || destructing}
-            >
-              {weather === 'snow' ? 'Stop Snow' : '\u2744 Snow'}
-            </button>
+          <div className="experimental__card-body">
+            <h3 className="experimental__card-title">Weather Machine</h3>
+            <p className="experimental__card-desc">
+              Make it rain or snow across the entire website.
+            </p>
+            <div className="experimental__card-actions">
+              <button
+                className="experimental__btn experimental__btn--rain"
+                onClick={() => setWeather(weather === 'rain' ? null : 'rain')}
+                disabled={abducting || destructing}
+              >
+                {weather === 'rain' ? 'Stop Rain' : '\uD83C\uDF27 Rain'}
+              </button>
+              <button
+                className="experimental__btn experimental__btn--snow"
+                onClick={() => setWeather(weather === 'snow' ? null : 'snow')}
+                disabled={abducting || destructing}
+              >
+                {weather === 'snow' ? 'Stop Snow' : '\u2744 Snow'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* ALIEN ABDUCTION */}
         <div className="experimental__card">
           <div className="experimental__card-icon">{'\uD83D\uDC7E'}</div>
-          <h3 className="experimental__card-title">Alien Abduction</h3>
-          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
-            Pixelated aliens and UFOs invade and abduct the website.
-          </p>
-          <div className="experimental__card-actions">
-            <button
-              className="experimental__btn experimental__btn--alien"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={() => setAbducting(true)}
-              disabled={abducting || destructing}
-            >
-              {abducting ? 'Abducting...' : '\uD83D\uDC7E Abduct'}
-            </button>
+          <div className="experimental__card-body">
+            <h3 className="experimental__card-title">Alien Abduction</h3>
+            <p className="experimental__card-desc">
+              Pixelated aliens and UFOs invade and abduct the website.
+            </p>
+            <div className="experimental__card-actions">
+              <button
+                className="experimental__btn experimental__btn--alien"
+                onClick={() => setAbducting(true)}
+                disabled={abducting || destructing}
+              >
+                {abducting ? 'Abducting...' : '\uD83D\uDC7E Abduct'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* SELF DESTRUCT */}
         <div className="experimental__card experimental__card--danger">
           <div className="experimental__card-icon">{'\uD83D\uDCA3'}</div>
-          <h3 className="experimental__card-title">Self Destruct</h3>
-          <p className="experimental__card-desc" style={{ wordBreak: 'break-word' }}>
-            Blow up the entire website. You have been warned.
-          </p>
-          <div className="experimental__card-actions">
-            <button
-              className="experimental__btn experimental__btn--destruct"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={handleDestruct}
-              disabled={abducting || destructing}
-            >
-              {'\uD83D\uDC80'} Self Destruct
-            </button>
+          <div className="experimental__card-body">
+            <h3 className="experimental__card-title">Self Destruct</h3>
+            <p className="experimental__card-desc">
+              Blow up the entire website. You have been warned.
+            </p>
+            <div className="experimental__card-actions">
+              <button
+                className="experimental__btn experimental__btn--destruct"
+                onClick={handleDestruct}
+                disabled={abducting || destructing}
+              >
+                {'\uD83D\uDC80'} Self Destruct
+              </button>
+            </div>
           </div>
         </div>
       </div>

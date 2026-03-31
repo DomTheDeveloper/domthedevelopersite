@@ -1255,14 +1255,37 @@
 
   .experimental__grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .experimental__card {
-    padding: 1.2rem 1rem;
+    padding: 1rem 0.8rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8rem;
+    text-align: left;
   }
 
   .experimental__card-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .experimental__card-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .experimental__card-desc {
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+  }
+
+  .experimental__card-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -1290,6 +1313,15 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .experimental__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
 }
 
 .experimental__card {
@@ -1320,6 +1352,11 @@
 .experimental__card-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+}
+
+.experimental__card-body {
+  flex: 1;
+  min-width: 0;
 }
 
 .experimental__card-title {
