@@ -2,7 +2,7 @@
   "name": "domthedevelopersite",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://domthedeveloper.github.io/domthedevelopersite",
+  "homepage": "https://domthedeveloper.com",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
