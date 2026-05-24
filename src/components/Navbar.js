@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -18,10 +21,35 @@ const Navbar = () => {
     { label: 'Contact', href: 'contact' },
   ];
 
+  const scrollToId = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleNav = (e, id) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    if (location.pathname === '/') {
+      scrollToId(id);
+    } else {
+      navigate('/', { state: { scrollTo: id } });
+    }
+  };
+
+  const handleLogo = (e) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <div className="navbar__inner">
-        <a href="#hero" className="navbar__logo">
+        <a href="/" className="navbar__logo" onClick={handleLogo}>
           <span className="navbar__logo-bracket">&lt;</span>
           Dom
           <span className="navbar__logo-bracket">/&gt;</span>
@@ -38,7 +66,7 @@ const Navbar = () => {
             <li key={link.href}>
               <a
                 href={`#${link.href}`}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => handleNav(e, link.href)}
               >
                 {link.label}
               </a>
