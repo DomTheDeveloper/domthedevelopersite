@@ -4,6 +4,7 @@ import { getProject, projects, projectIcons } from '../projects/projectsData';
 import Navbar from './Navbar';
 import ParticleField from './ParticleField';
 import ClickSpark from './ClickSpark';
+import ProjectDemo from './ProjectDemo';
 
 const ProjectDetail = () => {
   const { slug } = useParams();
@@ -76,20 +77,15 @@ const ProjectDetail = () => {
                 </div>
                 <div className="project-detail__cta-row">
                   <a
-                    href={project.demoUrl}
+                    href="#demo"
                     className="project-detail__cta project-detail__cta--primary"
-                    target="_blank"
-                    rel="noreferrer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById('demo');
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
                   >
-                    Live Demo &rarr;
-                  </a>
-                  <a
-                    href={project.repoUrl}
-                    className="project-detail__cta project-detail__cta--ghost"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Source
+                    Try the Demo &darr;
                   </a>
                 </div>
               </div>
@@ -127,16 +123,28 @@ const ProjectDetail = () => {
             <p className="project-detail__body">{project.overview}</p>
           </section>
 
+          <section id="demo" className="project-detail__block project-detail__demo-section">
+            <h2 className="project-detail__h2">
+              <span className="section__title-tag">02.</span> Live Demo
+            </h2>
+            <p className="project-detail__body project-detail__demo-lede">
+              An interactive slice of {project.title} you can poke at right here.
+            </p>
+            <div className="project-detail__demo-frame">
+              <ProjectDemo slug={project.slug} />
+            </div>
+          </section>
+
           <section className="project-detail__block project-detail__split">
             <div>
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">02.</span> Problem
+                <span className="section__title-tag">03.</span> Problem
               </h2>
               <p className="project-detail__body">{project.problem}</p>
             </div>
             <div>
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">03.</span> Solution
+                <span className="section__title-tag">04.</span> Solution
               </h2>
               <p className="project-detail__body">{project.solution}</p>
             </div>
@@ -144,7 +152,7 @@ const ProjectDetail = () => {
 
           <section className="project-detail__block">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">04.</span> Key Features
+              <span className="section__title-tag">05.</span> Key Features
             </h2>
             <div className="project-detail__features">
               {project.features.map((f) => (
@@ -158,7 +166,7 @@ const ProjectDetail = () => {
 
           <section className="project-detail__block">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">05.</span> Tech Stack
+              <span className="section__title-tag">06.</span> Tech Stack
             </h2>
             <div className="project-detail__stack">
               {project.stack.map((s) => (
@@ -173,7 +181,7 @@ const ProjectDetail = () => {
           {project.metrics && (
             <section className="project-detail__block">
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">06.</span> Impact
+                <span className="section__title-tag">07.</span> Impact
               </h2>
               <div className="project-detail__metrics">
                 {project.metrics.map((m) => (
@@ -188,7 +196,7 @@ const ProjectDetail = () => {
 
           <section className="project-detail__block project-detail__next">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">07.</span> Other Work
+              <span className="section__title-tag">08.</span> Other Work
             </h2>
             <div className="project-detail__next-grid">
               {otherProjects.map((p) => (
