@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { getProject, projects, projectIcons } from '../projects/projectsData';
 import Navbar from './Navbar';
 import ParticleField from './ParticleField';
@@ -22,26 +22,13 @@ const ProjectDetail = () => {
   }, [project, slug]);
 
   if (!project) {
-    return (
-      <div className="App">
-        <ParticleField />
-        <ClickSpark />
-        <Navbar />
-        <main className="project-detail project-detail--missing">
-          <div className="project-detail__inner">
-            <p className="project-detail__eyebrow">404</p>
-            <h1 className="project-detail__title">Project not found</h1>
-            <p className="project-detail__lede">
-              The project you&apos;re looking for has drifted into the void.
-            </p>
-            <button className="project-detail__back-btn" onClick={() => navigate('/')}>
-              &larr; Back to portfolio
-            </button>
-          </div>
-        </main>
-      </div>
-    );
+    return <Navigate to="/" replace state={{ scrollTo: 'projects' }} />;
   }
+
+  const goToProjects = (e) => {
+    e.preventDefault();
+    navigate('/', { state: { scrollTo: 'projects' } });
+  };
 
   const otherProjects = projects.filter(p => p.slug !== project.slug).slice(0, 3);
 
@@ -58,9 +45,9 @@ const ProjectDetail = () => {
         <div className="project-detail__hero">
           <div className="project-detail__hero-glow" />
           <div className="project-detail__inner">
-            <Link to="/" className="project-detail__back">
+            <a href="/" className="project-detail__back" onClick={goToProjects}>
               &larr; All projects
-            </Link>
+            </a>
 
             <div className="project-detail__hero-grid">
               <div className="project-detail__hero-text">

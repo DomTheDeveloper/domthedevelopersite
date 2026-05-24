@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
@@ -56,7 +56,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/project/:slug" element={<ProjectDetail />} />
-        <Route path="*" element={<ProjectDetail />} />
+        <Route path="*" element={<Navigate to="/" replace state={{ scrollTo: 'projects' }} />} />
       </Routes>
     </HashRouter>
   );
