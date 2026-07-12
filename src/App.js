@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
@@ -9,8 +9,33 @@ import Contact from './components/Contact';
 import ParticleField from './components/ParticleField';
 import ClickSpark from './components/ClickSpark';
 import Navbar from './components/Navbar';
-import ProjectDetail from './components/ProjectDetail';
+import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
+
+const ProjectDetail = lazy(() => import('./components/ProjectDetail'));
+const NotFound = lazy(() => import('./components/NotFound'));
+
+const RouteLoader = () => (
+  <div className="route-loader" role="status" aria-live="polite" aria-label="Loading">
+    <div className="route-loader__pulse" />
+    <span className="route-loader__label">Loading&hellip;</span>
+  </div>
+);
+
+const ScrollManager = () => {
+  const location = useLocation();
+  const prevKey = useRef(location.key);
+  useEffect(() => {
+    if (location.key !== prevKey.current) {
+      prevKey.current = location.key;
+      const target = location.state && location.state.scrollTo;
+      if (!target) {
+        window.scrollTo({ top: 0, left: 0 });
+      }
+    }
+  }, [location]);
+  return null;
+};
 
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -34,15 +59,18 @@ const Home = () => {
 
   return (
     <div className="App">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <ParticleField />
       <ClickSpark />
       <Navbar />
-      <Hero scrollY={scrollY} />
-      <About />
-      <Projects />
-      <Arcade />
-      <TechZone />
-      <Contact />
+      <main id="main-content">
+        <Hero scrollY={scrollY} />
+        <About />
+        <Projects />
+        <Arcade />
+        <TechZone />
+        <Contact />
+      </main>
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
       </footer>
@@ -53,11 +81,16 @@ const Home = () => {
 function App() {
   return (
     <HashRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/project/:slug" element={<ProjectDetail />} />
-        <Route path="*" element={<Navigate to="/" replace state={{ scrollTo: 'projects' }} />} />
-      </Routes>
+      <ErrorBoundary>
+        <ScrollManager />
+        <Suspense fallback={<RouteLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/project/:slug" element={<ProjectDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </HashRouter>
   );
 }

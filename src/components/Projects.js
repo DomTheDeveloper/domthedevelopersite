@@ -28,6 +28,7 @@ const Projects = () => {
               to={`/project/${project.slug}`}
               className="project-card project-card--link"
               style={{ animationDelay: `${i * 0.1}s`, '--accent': project.color }}
+              aria-label={`View ${project.title} case study`}
             >
               <div className="project-card__glow" />
               <div className="project-card__content">

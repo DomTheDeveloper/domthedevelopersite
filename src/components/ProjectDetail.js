@@ -6,6 +6,17 @@ import ParticleField from './ParticleField';
 import ClickSpark from './ClickSpark';
 import ProjectDemo from './ProjectDemo';
 
+const setMeta = (name, content, attr = 'name') => {
+  if (typeof document === 'undefined') return;
+  let el = document.head.querySelector(`meta[${attr}="${name}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, name);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+};
+
 const ProjectDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -13,13 +24,22 @@ const ProjectDetail = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
-    if (project) {
-      document.title = `${project.title} | Dom the Developer`;
-    }
+    if (!project) return undefined;
+    const prevTitle = document.title;
+    document.title = `${project.title} · ${project.tagline} | Dom the Developer`;
+    setMeta('description', `${project.title} — ${project.description}`);
+    setMeta('og:title', `${project.title} · Dom the Developer`, 'property');
+    setMeta('og:description', project.tagline, 'property');
+    setMeta('og:type', 'article', 'property');
+    setMeta('twitter:card', 'summary_large_image');
+    setMeta('twitter:title', `${project.title} · Dom the Developer`);
+    setMeta('twitter:description', project.tagline);
+    setMeta('theme-color', project.color);
     return () => {
-      document.title = 'Dom the Developer | Portfolio';
+      document.title = prevTitle;
+      setMeta('theme-color', '#0a0e17');
     };
-  }, [project, slug]);
+  }, [project]);
 
   if (!project) {
     return <Navigate to="/" replace state={{ scrollTo: 'projects' }} />;

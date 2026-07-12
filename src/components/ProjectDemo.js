@@ -1,12 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import useReducedMotion from '../hooks/useReducedMotion';
+
+const MotionContext = createContext(true);
+const useActive = () => useContext(MotionContext);
 
 /* ============ CloudSync Dashboard ============ */
 const CloudSyncDemo = () => {
+  const active = useActive();
   const [bars, setBars] = useState(() => Array.from({ length: 24 }, () => 20 + Math.random() * 60));
   const [metrics, setMetrics] = useState({ rps: 18420, p99: 42, err: 0.12, cpu: 38 });
   const [spark, setSpark] = useState(() => Array.from({ length: 40 }, () => 30 + Math.random() * 40));
 
   useEffect(() => {
+    if (!active) return undefined;
     const id = setInterval(() => {
       setBars(prev => [...prev.slice(1), 20 + Math.random() * 70]);
       setSpark(prev => [...prev.slice(1), 20 + Math.random() * 60]);
@@ -18,14 +24,15 @@ const CloudSyncDemo = () => {
       }));
     }, 700);
     return () => clearInterval(id);
-  }, []);
+  }, [active]);
 
   const sparkPath = spark.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / (spark.length - 1)) * 100} ${100 - v}`).join(' ');
 
   return (
     <div className="demo demo--cloudsync">
       <div className="demo__topbar">
-        <span className="demo__dot demo__dot--live" /> LIVE · us-east-1
+        <span className={`demo__dot ${active ? 'demo__dot--live' : ''}`} />
+        {active ? 'LIVE' : 'PAUSED'} · us-east-1
         <span className="demo__topbar-right">CloudSync v3.2</span>
       </div>
       <div className="demo__stats">
@@ -44,7 +51,7 @@ const CloudSyncDemo = () => {
       </div>
       <div className="demo__spark">
         <div className="demo__chart-label">Latency trend</div>
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="demo__spark-svg">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="demo__spark-svg" aria-hidden="true">
           <path d={sparkPath} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </svg>
       </div>
@@ -61,7 +68,7 @@ const DevFlowDemo = () => {
   const endRef = useRef(null);
 
   useEffect(() => {
-    endRef.current && endRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [lines]);
 
   const run = (raw) => {
@@ -131,14 +138,17 @@ const DevFlowDemo = () => {
           </div>
         ))}
         <div className="demo__term-input-row">
-          <span className="demo__term-prompt">$</span>
+          <span className="demo__term-prompt" aria-hidden="true">$</span>
+          <label className="visually-hidden" htmlFor="devflow-input">DevFlow command</label>
           <input
+            id="devflow-input"
             className="demo__term-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKey}
             placeholder="type a command…"
-            autoFocus={false}
+            autoComplete="off"
+            spellCheck="false"
           />
         </div>
         <div ref={endRef} />
@@ -149,12 +159,14 @@ const DevFlowDemo = () => {
 
 /* ============ NeuralNet Studio ============ */
 const NeuralNetDemo = () => {
+  const active = useActive();
   const [layers, setLayers] = useState([3, 5, 5, 2]);
   const [tick, setTick] = useState(0);
   useEffect(() => {
+    if (!active) return undefined;
     const id = setInterval(() => setTick(t => t + 1), 600);
     return () => clearInterval(id);
-  }, []);
+  }, [active]);
 
   const W = 320, H = 200, padX = 24, padY = 18;
   const layerX = (i) => padX + (i * (W - padX * 2)) / (layers.length - 1);
@@ -189,10 +201,10 @@ const NeuralNetDemo = () => {
   return (
     <div className="demo demo--neural">
       <div className="demo__topbar">
-        <span className="demo__dot demo__dot--live" /> training · epoch {tick}
+        <span className={`demo__dot ${active ? 'demo__dot--live' : ''}`} /> {active ? 'training' : 'paused'} · epoch {tick}
         <span className="demo__topbar-right">loss: {(0.42 / (tick + 1) + 0.04).toFixed(3)}</span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="demo__net">
+      <svg viewBox={`0 0 ${W} ${H}`} className="demo__net" aria-label="Neural network graph">
         {edges.map((e, i) => (
           <line
             key={i}
@@ -216,14 +228,14 @@ const NeuralNetDemo = () => {
         {layers.map((c, i) => (
           <div key={i} className="demo__net-layer">
             <span className="demo__net-layer-label">L{i}</span>
-            <button onClick={() => updateLayer(i, -1)} aria-label="dec">−</button>
+            <button type="button" onClick={() => updateLayer(i, -1)} aria-label={`Remove neuron from layer ${i}`}>−</button>
             <span className="demo__net-layer-count">{c}</span>
-            <button onClick={() => updateLayer(i, +1)} aria-label="inc">+</button>
+            <button type="button" onClick={() => updateLayer(i, +1)} aria-label={`Add neuron to layer ${i}`}>+</button>
           </div>
         ))}
         <div className="demo__net-actions">
-          <button onClick={addLayer}>+ layer</button>
-          <button onClick={removeLayer}>− layer</button>
+          <button type="button" onClick={addLayer}>+ layer</button>
+          <button type="button" onClick={removeLayer}>− layer</button>
         </div>
       </div>
     </div>
@@ -232,6 +244,7 @@ const NeuralNetDemo = () => {
 
 /* ============ QuantumChat ============ */
 const QuantumChatDemo = () => {
+  const active = useActive();
   const seed = [
     { who: 'them', text: 'Yo, did the keys rotate?', ttl: 7 },
     { who: 'me', text: 'Yep — auto-rotated at 02:00 UTC.', ttl: 5 },
@@ -240,6 +253,7 @@ const QuantumChatDemo = () => {
   const [msgs, setMsgs] = useState(seed);
   const [draft, setDraft] = useState('');
   useEffect(() => {
+    if (!active) return undefined;
     const id = setInterval(() => {
       setMsgs(prev => prev
         .map(m => ({ ...m, ttl: Math.max(0, m.ttl - 1) }))
@@ -247,7 +261,7 @@ const QuantumChatDemo = () => {
       );
     }, 1500);
     return () => clearInterval(id);
-  }, []);
+  }, [active]);
 
   const send = () => {
     const t = draft.trim();
@@ -264,13 +278,13 @@ const QuantumChatDemo = () => {
   return (
     <div className="demo demo--chat">
       <div className="demo__topbar">
-        <span className="demo__dot demo__dot--live" /> e2e secured · 1 peer
+        <span className={`demo__dot ${active ? 'demo__dot--live' : ''}`} /> e2e secured · 1 peer
         <span className="demo__topbar-right">🔒 sealed</span>
       </div>
       <div className="demo__chat-feed">
         {msgs.map((m, i) => (
           <div key={i} className={`demo__chat-msg demo__chat-msg--${m.who}`}>
-            <div className="demo__chat-cipher">{cipherize(m.text)}</div>
+            <div className="demo__chat-cipher" aria-hidden="true">{cipherize(m.text)}</div>
             <div className="demo__chat-text">{m.text}</div>
             <div className="demo__chat-ttl">disappears in {m.ttl}s</div>
           </div>
@@ -278,14 +292,17 @@ const QuantumChatDemo = () => {
         {msgs.length === 0 && <div className="demo__chat-empty">all messages have self-destructed.</div>}
       </div>
       <div className="demo__chat-input-row">
+        <label className="visually-hidden" htmlFor="chat-input">Encrypted message</label>
         <input
+          id="chat-input"
           className="demo__term-input"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
           placeholder="encrypted message…"
+          autoComplete="off"
         />
-        <button onClick={send} className="demo__chat-send">send</button>
+        <button type="button" onClick={send} className="demo__chat-send">send</button>
       </div>
     </div>
   );
@@ -301,9 +318,11 @@ const HYPER_ROUTES = [
 ];
 
 const HyperApiDemo = () => {
+  const active = useActive();
   const [reqs, setReqs] = useState([]);
   const [stats, setStats] = useState({ ok: 0, cached: 0, throttled: 0 });
   useEffect(() => {
+    if (!active) return undefined;
     const id = setInterval(() => {
       const r = HYPER_ROUTES[Math.floor(Math.random() * HYPER_ROUTES.length)];
       const roll = Math.random();
@@ -316,7 +335,7 @@ const HyperApiDemo = () => {
         ...r,
         status,
         lat: lat.toFixed(0),
-        code: status === 'throttled' ? 429 : status === 'cached' ? 200 : 200,
+        code: status === 'throttled' ? 429 : 200,
       };
       setReqs(prev => [entry, ...prev].slice(0, 8));
       setStats(s => ({
@@ -326,12 +345,12 @@ const HyperApiDemo = () => {
       }));
     }, 520);
     return () => clearInterval(id);
-  }, []);
+  }, [active]);
 
   return (
     <div className="demo demo--api">
       <div className="demo__topbar">
-        <span className="demo__dot demo__dot--live" /> gateway live · 5 routes
+        <span className={`demo__dot ${active ? 'demo__dot--live' : ''}`} /> gateway {active ? 'live' : 'idle'} · 5 routes
         <span className="demo__topbar-right">edge: iad</span>
       </div>
       <div className="demo__stats">
@@ -357,6 +376,7 @@ const HyperApiDemo = () => {
 
 /* ============ PixelForge ============ */
 const PixelForgeDemo = () => {
+  const active = useActive();
   const canvasRef = useRef(null);
   const [hue, setHue] = useState(190);
   const [speed, setSpeed] = useState(1);
@@ -367,13 +387,15 @@ const PixelForgeDemo = () => {
 
   useEffect(() => {
     const cvs = canvasRef.current;
-    if (!cvs) return;
+    if (!cvs) return undefined;
     const ctx = cvs.getContext('2d');
     const W = cvs.width = 320;
     const H = cvs.height = 200;
+    let cancelled = false;
     const draw = () => {
+      if (cancelled) return;
       const s = stateRef.current;
-      s.t += 0.02 * s.speed;
+      if (active) s.t += 0.02 * s.speed;
       const img = ctx.createImageData(W, H);
       for (let y = 0; y < H; y += 2) {
         for (let x = 0; x < W; x += 2) {
@@ -395,26 +417,33 @@ const PixelForgeDemo = () => {
         }
       }
       ctx.putImageData(img, 0, 0);
-      s.raf = requestAnimationFrame(draw);
+      if (active) s.raf = requestAnimationFrame(draw);
     };
-    draw();
+    if (active) {
+      draw();
+    } else {
+      draw();
+    }
     const s = stateRef.current;
-    return () => cancelAnimationFrame(s.raf);
-  }, []);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(s.raf);
+    };
+  }, [active]);
 
   return (
     <div className="demo demo--pixel">
       <div className="demo__topbar">
-        <span className="demo__dot demo__dot--live" /> shader · live
+        <span className={`demo__dot ${active ? 'demo__dot--live' : ''}`} /> shader · {active ? 'live' : 'paused'}
         <span className="demo__topbar-right">pixelforge.glsl</span>
       </div>
-      <canvas ref={canvasRef} className="demo__pixel-canvas" />
+      <canvas ref={canvasRef} className="demo__pixel-canvas" aria-label="Animated shader preview" />
       <div className="demo__pixel-controls">
         <label>hue
-          <input type="range" min="0" max="360" value={hue} onChange={(e) => setHue(+e.target.value)} />
+          <input type="range" min="0" max="360" value={hue} onChange={(e) => setHue(+e.target.value)} aria-label="Hue" />
         </label>
         <label>speed
-          <input type="range" min="0" max="3" step="0.1" value={speed} onChange={(e) => setSpeed(+e.target.value)} />
+          <input type="range" min="0" max="3" step="0.1" value={speed} onChange={(e) => setSpeed(+e.target.value)} aria-label="Speed" />
         </label>
       </div>
     </div>
@@ -452,8 +481,35 @@ const demos = {
 
 const ProjectDemo = ({ slug }) => {
   const Demo = demos[slug];
+  const wrapperRef = useRef(null);
+  const reduced = useReducedMotion();
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      setVisible(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => setVisible(e.isIntersecting));
+      },
+      { threshold: 0.15 }
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
+
   if (!Demo) return null;
-  return <Demo />;
+  const active = !reduced && visible;
+  return (
+    <div ref={wrapperRef} className="project-detail__demo-wrapper">
+      <MotionContext.Provider value={active}>
+        <Demo />
+      </MotionContext.Provider>
+    </div>
+  );
 };
 
 export default ProjectDemo;
