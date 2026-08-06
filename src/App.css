@@ -71,6 +71,9 @@
 .navbar__links a:hover { color: var(--accent); }
 .navbar__links a:hover::after { width: 100%; }
 
+.navbar__links a.navbar__link--active { color: var(--accent); }
+.navbar__links a.navbar__link--active::after { width: 100%; }
+
 .navbar__burger {
   display: none;
   flex-direction: column;
@@ -2253,6 +2256,12 @@
   outline-offset: 3px;
   border-radius: 3px;
 }
+
+/* The skip link parks focus on <main>; don't ring the whole page for it. */
+#main-content:focus,
+#main-content:focus-visible {
+  outline: none;
+}
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -2326,6 +2335,27 @@ input:focus-visible,
   gap: 0.8rem;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+/* Inline (per-widget) error boundary */
+.widget-error {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+.widget-error__title {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+.widget-error__hint {
+  color: var(--text-dim);
+  font-size: 0.78rem;
 }
 
 /* Reduced motion */

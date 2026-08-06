@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import Experimental from './Experimental';
+import ErrorBoundary from './ErrorBoundary';
 
 const Constellations = lazy(() => import('./techzone/Constellations'));
 const InteractiveTerminal = lazy(() => import('./techzone/InteractiveTerminal'));
@@ -62,7 +63,9 @@ const TechZone = () => {
             {items.map(item => (
               <button
                 key={item.id}
+                type="button"
                 className={`techzone__tab ${activeId === item.id ? 'techzone__tab--active' : ''} ${item.danger ? 'techzone__tab--danger' : ''} ${activeId === item.id && item.danger ? 'techzone__tab--danger-active' : ''}`}
+                aria-pressed={activeId === item.id}
                 onClick={() => setActiveId(item.id)}
               >
                 <span className="techzone__tab-icon">{item.icon}</span>
@@ -74,9 +77,11 @@ const TechZone = () => {
 
         <div className="techzone__content">
           <div className="techzone__content-inner">
-            <Suspense fallback={<Loader />}>
-              {ActiveComponent && <ActiveComponent key={activeId} />}
-            </Suspense>
+            <ErrorBoundary key={activeId} inline label={`${active?.name || 'This experiment'} stopped working.`}>
+              <Suspense fallback={<Loader />}>
+                {ActiveComponent && <ActiveComponent />}
+              </Suspense>
+            </ErrorBoundary>
           </div>
           <p className="techzone__desc">{active?.desc}</p>
         </div>

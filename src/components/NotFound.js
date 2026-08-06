@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import ParticleField from './ParticleField';
 import ClickSpark from './ClickSpark';
 
 const NotFound = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
     const prev = document.title;
     document.title = '404 · Not Found | Dom the Developer';
     return () => { document.title = prev; };
@@ -18,7 +18,7 @@ const NotFound = () => {
       <ParticleField />
       <ClickSpark />
       <Navbar />
-      <main className="project-detail project-detail--missing" role="main">
+      <main className="project-detail project-detail--missing">
         <div className="project-detail__inner">
           <p className="project-detail__eyebrow">404</p>
           <h1 className="project-detail__title">Page not found</h1>
@@ -26,26 +26,16 @@ const NotFound = () => {
             That URL doesn&apos;t lead anywhere I&apos;ve built &mdash; yet.
           </p>
           <div className="project-detail__cta-row">
-            <button
-              type="button"
-              className="project-detail__cta project-detail__cta--primary"
-              onClick={() => navigate('/', { state: { scrollTo: 'projects' } })}
-            >
+            <Link to="/projects" className="project-detail__cta project-detail__cta--primary">
               &larr; See projects
-            </button>
-            <button
-              type="button"
-              className="project-detail__cta project-detail__cta--ghost"
-              onClick={() => navigate('/')}
-            >
+            </Link>
+            <Link to="/" className="project-detail__cta project-detail__cta--ghost">
               Home
-            </button>
+            </Link>
           </div>
         </div>
       </main>
-      <footer className="footer">
-        <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Dom",
+  "name": "Dom the Developer — Portfolio",
+  "description": "Full-stack engineer building thoughtful web tools, dashboards, developer tooling, and creative coding experiments.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,7 +11,8 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
@@ -18,8 +20,10 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "any",
+  "theme_color": "#0a0e17",
+  "background_color": "#0a0e17"
 }

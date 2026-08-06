@@ -1,75 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { SECTIONS, SECTION_IDS, scrollToSection } from '../sections';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeId, setActiveId] = useState(null);
   const location = useLocation();
-  const navigate = useNavigate();
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    if (!menuOpen) return undefined;
+    const onKeyDown = (e) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
+
+  // Highlight whichever section is currently under the reader's eye.
+  useEffect(() => {
+    const els = SECTION_IDS
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    const onScroll = () => {
+      setScrolled(window.scrollY > 50);
+      if (!els.length) { setActiveId(null); return; }
+      const marker = window.scrollY + window.innerHeight * 0.35;
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      let current = null;
+      els.forEach((el) => {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        if (top <= marker) current = el.id;
+      });
+      setActiveId(atBottom ? els[els.length - 1].id : current);
+    };
+
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [location.pathname]);
 
-  const links = [
-    { label: 'About', href: 'about' },
-    { label: 'Projects', href: 'projects' },
-    { label: 'Arcade', href: 'arcade' },
-    { label: 'Tech Zone', href: 'techzone' },
-    { label: 'Contact', href: 'contact' },
-  ];
-
-  const scrollToId = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const handleNav = (e, id) => {
-    e.preventDefault();
+  // Re-clicking the section you are already on should still take you there.
+  const handleLinkClick = useCallback((to, id) => {
     setMenuOpen(false);
-    if (location.pathname === '/') {
-      scrollToId(id);
-    } else {
-      navigate('/', { state: { scrollTo: id } });
-    }
-  };
-
-  const handleLogo = (e) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      navigate('/');
-    }
-  };
+    if (location.pathname === to) scrollToSection(id);
+  }, [location.pathname]);
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`} aria-label="Primary">
       <div className="navbar__inner">
-        <a href="/" className="navbar__logo" onClick={handleLogo}>
+        <Link
+          to="/"
+          className="navbar__logo"
+          aria-label="Dom the Developer — home"
+          onClick={() => handleLinkClick('/', 'hero')}
+        >
           <span className="navbar__logo-bracket">&lt;</span>
           Dom
           <span className="navbar__logo-bracket">/&gt;</span>
-        </a>
+        </Link>
         <button
+          type="button"
           className={`navbar__burger ${menuOpen ? 'navbar__burger--open' : ''}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="navbar-links"
         >
           <span /><span /><span />
         </button>
-        <ul className={`navbar__links ${menuOpen ? 'navbar__links--open' : ''}`}>
-          {links.map(link => (
-            <li key={link.href}>
-              <a
-                href={`#${link.href}`}
-                onClick={(e) => handleNav(e, link.href)}
+        <ul id="navbar-links" className={`navbar__links ${menuOpen ? 'navbar__links--open' : ''}`}>
+          {SECTIONS.map(({ id, label }) => (
+            <li key={id}>
+              <Link
+                to={`/${id}`}
+                className={activeId === id ? 'navbar__link--active' : undefined}
+                aria-current={activeId === id ? 'true' : undefined}
+                onClick={() => handleLinkClick(`/${id}`, id)}
               >
-                {link.label}
-              </a>
+                {label}
+              </Link>
             </li>
           ))}
         </ul>

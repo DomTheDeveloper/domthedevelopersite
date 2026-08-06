@@ -1,38 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!--
+    The site is a single-page app behind a HashRouter, so every route lives
+    under a fragment. Crawlers drop fragments, which makes "/" the only
+    canonical URL worth listing; the in-app routes are reachable from it.
+  -->
   <url>
     <loc>https://domthedeveloper.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/cloudsync-dashboard</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/devflow-cli</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/neuralnet-studio</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/quantumchat</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/hyperapi-gateway</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://domthedeveloper.com/#/project/pixelforge</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
 </urlset>

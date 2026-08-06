@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { getProject, projects, projectIcons } from '../projects/projectsData';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import ParticleField from './ParticleField';
 import ClickSpark from './ClickSpark';
 import ProjectDemo from './ProjectDemo';
+import ErrorBoundary from './ErrorBoundary';
 
 const setMeta = (name, content, attr = 'name') => {
   if (typeof document === 'undefined') return;
@@ -19,7 +21,6 @@ const setMeta = (name, content, attr = 'name') => {
 
 const ProjectDetail = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const project = getProject(slug);
 
   useEffect(() => {
@@ -42,13 +43,8 @@ const ProjectDetail = () => {
   }, [project]);
 
   if (!project) {
-    return <Navigate to="/" replace state={{ scrollTo: 'projects' }} />;
+    return <Navigate to="/projects" replace />;
   }
-
-  const goToProjects = (e) => {
-    e.preventDefault();
-    navigate('/', { state: { scrollTo: 'projects' } });
-  };
 
   const otherProjects = projects.filter(p => p.slug !== project.slug).slice(0, 3);
 
@@ -65,9 +61,9 @@ const ProjectDetail = () => {
         <div className="project-detail__hero">
           <div className="project-detail__hero-glow" />
           <div className="project-detail__inner">
-            <a href="/" className="project-detail__back" onClick={goToProjects}>
+            <Link to="/projects" className="project-detail__back">
               &larr; All projects
-            </a>
+            </Link>
 
             <div className="project-detail__hero-grid">
               <div className="project-detail__hero-text">
@@ -83,17 +79,16 @@ const ProjectDetail = () => {
                   ))}
                 </div>
                 <div className="project-detail__cta-row">
-                  <a
-                    href="#demo"
+                  <button
+                    type="button"
                     className="project-detail__cta project-detail__cta--primary"
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       const el = document.getElementById('demo');
                       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                   >
                     Try the Demo &darr;
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -138,7 +133,9 @@ const ProjectDetail = () => {
               An interactive slice of {project.title} you can poke at right here.
             </p>
             <div className="project-detail__demo-frame">
-              <ProjectDemo slug={project.slug} />
+              <ErrorBoundary inline label="This demo stopped working.">
+                <ProjectDemo slug={project.slug} />
+              </ErrorBoundary>
             </div>
           </section>
 
@@ -229,9 +226,7 @@ const ProjectDetail = () => {
         </div>
       </main>
 
-      <footer className="footer">
-        <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

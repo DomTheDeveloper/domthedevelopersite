@@ -1,15 +1,17 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useParams } from 'react-router-dom';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
 import Arcade from './components/Arcade';
 import TechZone from './components/TechZone';
 import Contact from './components/Contact';
+import Footer from './components/Footer';
 import ParticleField from './components/ParticleField';
 import ClickSpark from './components/ClickSpark';
 import Navbar from './components/Navbar';
 import ErrorBoundary from './components/ErrorBoundary';
+import { isSection, scrollToSection } from './sections';
 import './App.css';
 
 const ProjectDetail = lazy(() => import('./components/ProjectDetail'));
@@ -22,24 +24,9 @@ const RouteLoader = () => (
   </div>
 );
 
-const ScrollManager = () => {
-  const location = useLocation();
-  const prevKey = useRef(location.key);
-  useEffect(() => {
-    if (location.key !== prevKey.current) {
-      prevKey.current = location.key;
-      const target = location.state && location.state.scrollTo;
-      if (!target) {
-        window.scrollTo({ top: 0, left: 0 });
-      }
-    }
-  }, [location]);
-  return null;
-};
-
-const Home = () => {
+const Home = ({ section }) => {
   const [scrollY, setScrollY] = useState(0);
-  const location = useLocation();
+  const mounted = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -47,23 +34,29 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Landing directly on "#/projects" jumps straight there; clicking through
+  // from elsewhere in the app glides. Either way the URL stays shareable.
   useEffect(() => {
-    const target = location.state && location.state.scrollTo;
-    if (target) {
-      requestAnimationFrame(() => {
-        const el = document.getElementById(target);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
-  }, [location]);
+    const behavior = mounted.current ? 'smooth' : 'instant';
+    mounted.current = true;
+    requestAnimationFrame(() => scrollToSection(section, behavior));
+  }, [section]);
+
+  const focusMain = (e) => {
+    e.preventDefault();
+    const el = document.getElementById('main-content');
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="App">
-      <a href="#main-content" className="skip-link">Skip to content</a>
+      <a href="#main-content" className="skip-link" onClick={focusMain}>Skip to content</a>
       <ParticleField />
       <ClickSpark />
       <Navbar />
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <Hero scrollY={scrollY} />
         <About />
         <Projects />
@@ -71,21 +64,27 @@ const Home = () => {
         <TechZone />
         <Contact />
       </main>
-      <footer className="footer">
-        <p>&copy; {new Date().getFullYear()} Dom the Developer. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
+};
+
+// "/" and "/:section" resolve to the same component so moving between sections
+// never tears down the page (and its canvases, games, and scroll position).
+const HomeRoute = () => {
+  const { section } = useParams();
+  if (section !== undefined && !isSection(section)) return <NotFound />;
+  return <Home section={section} />;
 };
 
 function App() {
   return (
     <HashRouter>
       <ErrorBoundary>
-        <ScrollManager />
         <Suspense fallback={<RouteLoader />}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="/:section" element={<HomeRoute />} />
             <Route path="/project/:slug" element={<ProjectDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

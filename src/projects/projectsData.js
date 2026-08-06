@@ -70,8 +70,6 @@ export const projects = [
     role: 'Lead Engineer',
     duration: '6 months',
     status: 'Production',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'CloudSync is a single pane of glass for distributed cloud infrastructure. Operators see CPU, memory, network, and request-level metrics streamed live from thousands of nodes, with anomaly detection surfaced as actionable alerts before customers feel anything.',
     problem:
@@ -109,8 +107,6 @@ export const projects = [
     role: 'Creator & Maintainer',
     duration: 'Ongoing',
     status: 'Open Source',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'DevFlow is a polyglot CLI that absorbs the rituals of new-project setup. Scaffold a stack, wire CI, containerize, deploy to a chosen target — each through a friendly command that produces conventional, audit-friendly output.',
     problem:
@@ -148,8 +144,6 @@ export const projects = [
     role: 'Founding Engineer',
     duration: '9 months',
     status: 'Beta',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'NeuralNet Studio turns model design into a visual conversation. Drag layers onto a canvas, point training data at it, watch loss curves move in real time — then export to TFJS, ONNX, or a hosted endpoint.',
     problem:
@@ -187,8 +181,6 @@ export const projects = [
     role: 'Full-Stack Engineer',
     duration: '7 months',
     status: 'Production',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'QuantumChat is an end-to-end encrypted messenger built around the idea that the server should know as little as possible. Messages are decrypted only on devices; metadata is minimized; live translation runs locally where it can.',
     problem:
@@ -226,8 +218,6 @@ export const projects = [
     role: 'Platform Engineer',
     duration: '5 months',
     status: 'Production',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'HyperAPI is the front door for a portfolio of internal services. It routes, throttles, caches, transforms, and reports — all while staying out of the way of the engineers it serves.',
     problem:
@@ -265,8 +255,6 @@ export const projects = [
     role: 'Creator',
     duration: 'Ongoing',
     status: 'Open Source',
-    demoUrl: '#',
-    repoUrl: '#',
     overview:
       'PixelForge is a creative coding playground that boots in the browser. Write a shader, sketch with Canvas, or wire up an interactive piece — then publish or remix in a click.',
     problem:

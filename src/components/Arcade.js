@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import ErrorBoundary from './ErrorBoundary';
 
 const SpaceRunner = lazy(() => import('./games/SpaceRunner'));
 const Pong = lazy(() => import('./games/Pong'));
@@ -70,7 +71,9 @@ const Arcade = () => {
             {games.map(g => (
               <button
                 key={g.id}
+                type="button"
                 className={`techzone__tab ${activeId === g.id ? 'techzone__tab--active' : ''}`}
+                aria-pressed={activeId === g.id}
                 onClick={() => setActiveId(g.id)}
               >
                 <span className="techzone__tab-icon">{g.icon}</span>
@@ -82,9 +85,11 @@ const Arcade = () => {
 
         <div className="techzone__content">
           <div className="techzone__content-inner">
-            <Suspense fallback={<Loader />}>
-              {ActiveComponent && <ActiveComponent key={activeId} />}
-            </Suspense>
+            <ErrorBoundary key={activeId} inline label={`${active?.name || 'This game'} stopped working.`}>
+              <Suspense fallback={<Loader />}>
+                {ActiveComponent && <ActiveComponent />}
+              </Suspense>
+            </ErrorBoundary>
           </div>
           <p className="techzone__desc">{mobile ? active?.mDesc : active?.dDesc}</p>
         </div>

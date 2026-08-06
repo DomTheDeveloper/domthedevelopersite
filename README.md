@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# domthedeveloper.com
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Personal portfolio for Dom the Developer — a single-page React app with project
+case studies, a small arcade, and a set of interactive canvas experiments.
 
-## Available Scripts
+Live at **[domthedeveloper.com](https://domthedeveloper.com)**.
 
-In the project directory, you can run:
+## Getting started
 
-### `npm start`
+```bash
+npm install
+npm start          # dev server on http://localhost:3000
+npm test           # test runner (watch mode)
+npm run build      # production build into build/
+npm run deploy     # build, then publish build/ to the gh-pages branch
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Routing
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The site is served from GitHub Pages, so it uses `HashRouter` — every route
+lives behind a `#`:
 
-### `npm test`
+| URL | What it shows |
+| --- | --- |
+| `#/` | Home |
+| `#/about`, `#/projects`, `#/arcade`, `#/techzone`, `#/contact` | Home, scrolled to that section |
+| `#/project/:slug` | A project case study |
+| anything else | 404 page |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Because the router owns the fragment, a bare `href="#contact"` is read as the
+route `/contact` and lands on the 404 page. Always link to sections with
+`<Link to="/contact">` (or `#/contact` in plain HTML) instead of an anchor.
+Section ids live in [`src/sections.js`](src/sections.js) — add one there and the
+nav, the routes, and the scroll-spy all pick it up.
 
-### `npm run build`
+## Layout
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+public/            static shell: index.html, manifest, robots.txt, sitemap.xml, CNAME
+src/
+  App.js           router, page shell, section routes
+  sections.js      section ids + scroll helper (single source of truth)
+  components/      page sections, navbar, footer, error boundary, 404
+    games/         arcade games (lazy loaded)
+    techzone/      interactive experiments (lazy loaded)
+  projects/        project case-study content
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Project case studies are plain data in
+[`src/projects/projectsData.js`](src/projects/projectsData.js); adding an entry
+there creates its card, its detail page, and its route.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Deployment
 
-### `npm run eject`
+`npm run deploy` builds the app and pushes `build/` to the `gh-pages` branch,
+which GitHub Pages serves at the custom domain configured in
+[`public/CNAME`](public/CNAME). `homepage` is set to `"."` in `package.json` so
+the bundle references its assets relatively and works from either the custom
+domain or the project-pages path.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Built with [Create React App](https://github.com/facebook/create-react-app).

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = ({ scrollY }) => {
   const [text, setText] = useState('');
@@ -22,7 +23,14 @@ const Hero = ({ scrollY }) => {
 
   return (
     <section id="hero" className="hero">
-      <div className="hero__content" style={{ transform: `translateY(${scrollY * 0.3}px)`, opacity: 1 - scrollY / 600 }}>
+      <div
+        className="hero__content"
+        style={{
+          transform: `translateY(${scrollY * 0.3}px)`,
+          opacity: Math.max(0, 1 - scrollY / 600),
+          pointerEvents: scrollY > 600 ? 'none' : undefined,
+        }}
+      >
         <div className="hero__glitch-wrapper">
           <h1 className="hero__title">
             {text}
@@ -35,8 +43,8 @@ const Hero = ({ scrollY }) => {
           <br /><span className="hero__tag">&lt;/code&gt;</span>
         </p>
         <div className="hero__cta-row">
-          <a href="#contact" className="hero__cta">Let's Chat</a>
-          <a href="#projects" className="hero__cta hero__cta--outline">Portfolio</a>
+          <Link to="/contact" className="hero__cta">Let's Chat</Link>
+          <Link to="/projects" className="hero__cta hero__cta--outline">Portfolio</Link>
         </div>
         <div className="hero__scroll-indicator">
           <div className="hero__scroll-mouse">
