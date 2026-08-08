@@ -13,7 +13,10 @@
   --accent-dim: rgba(100, 200, 255, 0.6);
   --text-primary: #e4eaf5;
   --text-secondary: #8892a8;
-  --text-dim: #515c72;
+  /* #515c72 read at 2.87:1 on the page and 2.58:1 on cards — below the 4.5:1
+     WCAG AA floor for body text. This clears both while staying a step dimmer
+     than --text-secondary. */
+  --text-dim: #79839a;
   --border: rgba(100, 200, 255, 0.08);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;

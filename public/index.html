@@ -28,6 +28,44 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
     <title>Dom the Developer | Portfolio</title>
+
+    <!-- Served in the static shell so crawlers see it without executing the app. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://domthedeveloper.com/#dom",
+            "name": "Dom the Developer",
+            "url": "https://domthedeveloper.com/",
+            "image": "https://domthedeveloper.com/logo512.png",
+            "jobTitle": "Software Engineer",
+            "description": "Full-stack engineer building thoughtful web tools, dashboards, developer tooling, and creative coding experiments.",
+            "email": "mailto:dom@domthedeveloper.com",
+            "knowsAbout": [
+              "React", "TypeScript", "Next.js", "Node.js", "Python", "Go",
+              "PostgreSQL", "Redis", "Docker", "Kubernetes", "AWS",
+              "WebGL", "Distributed Systems", "Developer Tooling"
+            ],
+            "sameAs": [
+              "https://github.com/DomTheDeveloper",
+              "https://x.com/domthedeveloper",
+              "https://instagram.com/domthedeveloper"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://domthedeveloper.com/#site",
+            "url": "https://domthedeveloper.com/",
+            "name": "Dom the Developer",
+            "description": "Portfolio of Dom the Developer — case studies, interactive demos, an arcade, and creative coding experiments.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://domthedeveloper.com/#dom" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <noscript>

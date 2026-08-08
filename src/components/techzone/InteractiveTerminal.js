@@ -109,8 +109,12 @@ const InteractiveTerminal = () => {
           </div>
         ))}
         <form onSubmit={handleSubmit} className="terminal__input-row">
-          <span className="terminal__prompt">$</span>
+          <span className="terminal__prompt" aria-hidden="true">$</span>
+          <label className="visually-hidden" htmlFor="techzone-terminal-input">
+            Terminal command — type help for a list
+          </label>
           <input
+            id="techzone-terminal-input"
             ref={inputRef}
             type="text"
             value={input}
