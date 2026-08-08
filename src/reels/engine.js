@@ -209,3 +209,129 @@ export const layer = (ctx, fn) => {
   fn();
   ctx.restore();
 };
+
+/* ---------------- kinetic toolkit ----------------
+ *
+ * The first pass at these reels was a slideshow: centred text fading in over a
+ * black card, six seconds a beat. What follows is the vocabulary that was
+ * missing — type that fills the frame, hard cuts, camera moves, masks.
+ */
+
+// Sawtooth 0→1 once per beat, for cutting in time.
+export const beat = (t, bpm = 120) => (t * bpm / 60) % 1;
+export const onBeat = (t, bpm = 120, every = 1) => Math.floor(t * bpm / 60 / every);
+
+// Fast overshoot then settle — the "slam".
+export const punch = (p) => (p >= 1 ? 1 : 1.18 - 0.18 * easeOut(clamp(p / 0.42)) - 0.0 * p);
+
+const measureSpaced = (ctx, str, spacing) => {
+  const chars = [...str];
+  return chars.reduce((w, c) => w + ctx.measureText(c).width + spacing, -spacing);
+};
+
+// Pick the size that makes `str` span `targetW`. This is what lets type run
+// edge to edge instead of sitting politely in the middle.
+export const fitSize = (ctx, str, {
+  targetW = REEL_W - 90, weight = 800, font = SANS, spacing = 0, max = 460, min = 24,
+} = {}) => {
+  const probe = 200;
+  ctx.font = `${weight} ${probe}px ${font}`;
+  const w = measureSpaced(ctx, str, spacing * (probe / 200));
+  if (!w) return min;
+  return clamp(probe * (targetW / w), min, max);
+};
+
+// Full-bleed colour. Used for the invert cuts.
+export const flood = (ctx, color, alpha = 1) => {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, REEL_W, REEL_H);
+  ctx.restore();
+};
+
+// Camera shake, in reel pixels.
+export const shake = (ctx, amount, seed = 0) => {
+  if (amount <= 0) return;
+  ctx.translate((rnd(seed, 3) - 0.5) * amount * 2, (rnd(seed, 9) - 0.5) * amount * 2);
+};
+
+// Push in / pull out about a point.
+export const camera = (ctx, scale, cx = REEL_W / 2, cy = REEL_H / 2) => {
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.translate(-cx, -cy);
+};
+
+// RGB split around an arbitrary draw, not just text.
+export const chroma = (ctx, drawFn, offset) => {
+  if (offset < 0.5) { drawFn(ctx); return; }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.save(); ctx.translate(-offset, 0); ctx.globalAlpha *= 0.55; ctx.fillStyle = '#ff2e6a'; drawFn(ctx, '#ff2e6a'); ctx.restore();
+  ctx.save(); ctx.translate(offset, 0); ctx.globalAlpha *= 0.55; ctx.fillStyle = ACCENT_2; drawFn(ctx, ACCENT_2); ctx.restore();
+  ctx.restore();
+  drawFn(ctx);
+};
+
+// Horizontal clip-wipe reveal.
+export const wipe = (ctx, p, y, h, fn, from = 'left') => {
+  ctx.save();
+  ctx.beginPath();
+  const w = REEL_W * clamp(p);
+  ctx.rect(from === 'left' ? 0 : REEL_W - w, y, w, h);
+  ctx.clip();
+  fn();
+  ctx.restore();
+};
+
+/* Scratch buffer for masked composites. One canvas, reused every frame —
+   allocating 1080×1920 per frame would thrash. */
+let maskBuf = null;
+const buffer = () => {
+  if (!maskBuf) {
+    maskBuf = document.createElement('canvas');
+    maskBuf.width = REEL_W;
+    maskBuf.height = REEL_H;
+  }
+  return maskBuf;
+};
+
+// Draw `paint` and show it only inside the glyphs of `str`.
+export const textMask = (ctx, str, opts, paint) => {
+  const buf = buffer();
+  const b = buf.getContext('2d');
+  b.setTransform(1, 0, 0, 1, 0, 0);
+  b.clearRect(0, 0, REEL_W, REEL_H);
+  b.save();
+  paint(b);
+  b.restore();
+  b.globalCompositeOperation = 'destination-in';
+  text(b, str, { ...opts, color: '#fff', alpha: 1 });
+  b.globalCompositeOperation = 'source-over';
+  ctx.drawImage(buf, 0, 0);
+};
+
+// A band of repeating words sliding across the frame.
+export const marquee = (ctx, items, {
+  y, size = 96, weight = 800, font = SANS, speed = 120, dir = 1, t = 0,
+  color = INK, alpha = 1, gap = 60,
+} = {}) => {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = `${weight} ${size}px ${font}`;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = color;
+  const widths = items.map((s) => ctx.measureText(s).width + gap);
+  const total = widths.reduce((a, b) => a + b, 0);
+  let x = -((t * speed * dir) % total);
+  if (dir > 0) x -= total;
+  for (let pass = 0; pass < 4 && x < REEL_W; pass++) {
+    for (let i = 0; i < items.length; i++) {
+      if (x > -widths[i] && x < REEL_W) ctx.fillText(items[i], x, y);
+      x += widths[i];
+    }
+  }
+  ctx.restore();
+};

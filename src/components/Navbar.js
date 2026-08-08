@@ -90,16 +90,6 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
-          <li>
-            <Link
-              to="/videos"
-              className={`navbar__link--page ${location.pathname === '/videos' ? 'navbar__link--active' : ''}`}
-              aria-current={location.pathname === '/videos' ? 'page' : undefined}
-              onClick={() => setMenuOpen(false)}
-            >
-              Reels
-            </Link>
-          </li>
         </ul>
       </div>
     </nav>
