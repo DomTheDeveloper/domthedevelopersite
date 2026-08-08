@@ -88,6 +88,23 @@ export const projects = [
       { name: 'WebSocket', why: 'Bidirectional, low-overhead transport for sub-second metric pushes.' },
       { name: 'D3.js', why: 'Surgical control over rendering for high-density time-series charts.' },
     ],
+    architecture: [
+      { name: 'Ingest gateway', role: 'Terminates agent WebSockets, validates and batches samples, and fans them into the aggregation tier. Backpressure is applied per connection so one noisy host cannot starve the fleet.' },
+      { name: 'Rolling aggregator', role: 'Keeps per-series ring buffers at 1s, 10s, and 60s resolutions so a query never scans raw samples. Baselines and z-scores are computed here, once, rather than per viewer.' },
+      { name: 'Fan-out hub', role: 'Maps subscriptions (org → dashboard → series) onto sockets and pushes only the deltas a given client is actually rendering.' },
+      { name: 'Render layer', role: 'React owns layout and interaction; D3 owns the canvas. Charts render outside the React tree so a 100k-point redraw never touches the reconciler.' },
+    ],
+    challenges: [
+      { title: 'React could not keep up with the stream', body: 'Pushing 2.4M samples/sec through component state was hopeless — the reconciler was the bottleneck, not the network. Charts moved to imperative canvas rendering with React reduced to mounting the node and handing over a ref. Frame time went from 90ms to under 8ms.' },
+      { title: 'Alert storms buried the actual incident', body: 'One bad deploy could fire 400 alerts in a minute and hide the one that mattered. A correlation window now groups alerts sharing a deploy id or service, so on-call sees a single incident with 400 signals instead of 400 incidents.' },
+      { title: 'Clocks disagreed across providers', body: 'Agents on three clouds drifted by up to eight seconds, which made cross-provider comparison meaningless. Samples are stamped on receipt at the gateway and reconciled against each agent\'s monotonic clock.' },
+    ],
+    timeline: [
+      { phase: 'Discovery', detail: 'Shadowed on-call for three weeks and logged every tab an operator opened during an incident.' },
+      { phase: 'Prototype', detail: 'One service, one chart, real WebSocket data — proving the render budget before building anything around it.' },
+      { phase: 'Build', detail: 'Ingest, aggregation, alerting, and the dashboard composer, shipped behind a flag to two internal teams.' },
+      { phase: 'Rollout', detail: 'Migrated 120 orgs off the legacy consoles over two months and decommissioned three of the five.' },
+    ],
     metrics: [
       { label: 'Metrics/sec', value: '2.4M' },
       { label: 'MTTR reduced', value: '63%' },
@@ -124,6 +141,23 @@ export const projects = [
       { name: 'Click', why: 'Composable command structure with first-class help and shell completion.' },
       { name: 'Docker', why: 'Reproducible builds across local, CI, and production.' },
       { name: 'CI/CD', why: 'Generated pipelines keep convention and quality gates consistent.' },
+    ],
+    architecture: [
+      { name: 'Command core', role: 'A thin Click app that resolves config and dispatches — nothing else. Every real capability is a plugin, which keeps the core testable and the surface honest.' },
+      { name: 'Plugin registry', role: 'Generators register through entry points, so a team can ship an internal template package without forking DevFlow.' },
+      { name: 'Template engine', role: 'Jinja templates plus a manifest describing prompts, defaults, and post-generate hooks. Rendering is a pure function of manifest and answers, which makes generated output diffable in tests.' },
+      { name: 'Doctor', role: 'A preflight that checks toolchain versions, Docker availability, and registry credentials so commands fail before they start rather than halfway through.' },
+    ],
+    challenges: [
+      { title: 'Templates rotted faster than they shipped', body: 'Generated projects drifted from their template within a month. Golden-file tests now regenerate every template in CI and diff the result, so a breaking upstream change fails the build instead of someone\'s afternoon.' },
+      { title: 'Opinionated fought usable', body: 'Early versions asked twelve questions before writing a file. Cutting it to one — the stack — and making everything else a flag with a sane default roughly doubled adoption.' },
+      { title: 'Partial failures left wreckage', body: 'A failed deploy could strand a half-pushed image and a dangling registry tag. Commands are staged into a plan and applied with a rollback for every step that mutates remote state.' },
+    ],
+    timeline: [
+      { phase: 'Scratch the itch', detail: 'Written over a weekend to stop hand-copying the same Dockerfile between services.' },
+      { phase: 'Plugin rewrite', detail: 'Rebuilt the core around entry points once a third team wanted templates of their own.' },
+      { phase: 'Open sourced', detail: 'Published with six templates and a contribution guide; the community added five more in the first quarter.' },
+      { phase: 'Ongoing', detail: '18 templates, monthly releases, and a deprecation policy that has held for two years.' },
     ],
     metrics: [
       { label: 'GitHub stars', value: '4.2k' },
@@ -162,6 +196,23 @@ export const projects = [
       { name: 'React', why: 'Composable canvas components and inspector panels.' },
       { name: 'WebGL', why: 'GPU-accelerated visualizations of activations and gradients.' },
     ],
+    architecture: [
+      { name: 'Graph model', role: 'A typed IR describing layers, shapes, and connections. The canvas, the compiler, and the exporter all read from it, so there is exactly one definition of what a model is.' },
+      { name: 'Shape inference', role: 'Runs on every edit and propagates shapes forward, so an invalid connection is refused while you are drawing it rather than an hour into a training run.' },
+      { name: 'Compiler', role: 'Lowers the IR to a TensorFlow.js model or to Python source. Both paths share the same traversal, which is why they cannot disagree.' },
+      { name: 'Training runtime', role: 'In-browser via TFJS for small models; larger jobs are serialized to a GPU worker pool that reports metrics back over the same channel.' },
+    ],
+    challenges: [
+      { title: 'The browser froze during training', body: 'Training on the main thread locked the UI on anything past a toy model. Moving to a Web Worker with transferable tensors and a throttled metrics channel kept the canvas at 60fps through a full run.' },
+      { title: 'People built models that could not train', body: 'The editor happily accepted graphs that exploded at the first backward pass. Shape inference and a preflight validator now catch dimension mismatches, dead branches, and unreachable outputs before the run button enables.' },
+      { title: 'Exports drifted from the browser', body: 'Exported Python did not always reproduce in-browser results. Generating both from the same IR traversal fixed it; a parity test trains 20 reference graphs on both paths and compares losses on every release.' },
+    ],
+    timeline: [
+      { phase: 'Spike', detail: 'Two weeks proving TensorFlow.js could train something non-trivial inside a tab.' },
+      { phase: 'Editor', detail: 'Canvas, layer palette, and live shape inference — the parts that make the idea feel real.' },
+      { phase: 'Runtime split', detail: 'Worker-based local training, then the GPU offload path for jobs that outgrew the browser.' },
+      { phase: 'Beta', detail: 'Opened to 12k builders; export targets and the hosted endpoint came directly out of what they asked for.' },
+    ],
     metrics: [
       { label: 'Models built', value: '12k+' },
       { label: 'Layer types', value: '40' },
@@ -198,6 +249,23 @@ export const projects = [
       { name: 'PostgreSQL', why: 'Strict relational integrity for the small set of metadata we do keep.' },
       { name: 'Redis', why: 'Ephemeral queues and presence at scale.' },
       { name: 'WebRTC', why: 'Direct peer media; the server never sees plaintext.' },
+    ],
+    architecture: [
+      { name: 'Key service', role: 'Stores public prekey bundles and nothing else. It can hand out the material needed to start a session and is close to useless to whoever steals it.' },
+      { name: 'Envelope relay', role: 'Accepts sealed envelopes addressed by an opaque recipient token, so the server can route a message without learning who sent it.' },
+      { name: 'Ephemeral store', role: 'Redis holds undelivered envelopes under a TTL matching the sender\'s policy. Expiry is enforced by the store, not by client goodwill.' },
+      { name: 'Signaling edge', role: 'Edge functions broker WebRTC offers and ICE candidates. Once peers connect, media never touches our infrastructure again.' },
+    ],
+    challenges: [
+      { title: 'Multi-device broke the threat model', body: 'A second device meant either sharing a key or losing history — both unacceptable. Per-device keys with sender-side fan-out (one envelope per device) kept the guarantees and cost only bandwidth.' },
+      { title: 'Disappearing messages that did not disappear', body: 'Screenshots aside, early builds left plaintext sitting in IndexedDB after expiry. Bodies now live in memory with a per-session encrypted spill file that is dropped when the window closes.' },
+      { title: 'Translation fought the entire premise', body: 'Shipping text to a translation API would have undone the product. A quantized on-device model covers the eight most common language pairs; anything else is an explicit, per-message opt-in.' },
+    ],
+    timeline: [
+      { phase: 'Threat model', detail: 'Wrote down exactly what the server is allowed to learn before writing any code. That document settled most later arguments.' },
+      { phase: 'Crypto core', detail: 'Prekeys, sealed sender, and forward secrecy — reviewed by an external auditor before a UI existed.' },
+      { phase: 'Product', detail: 'Clients, ephemeral policies, translation, and peer-to-peer calls.' },
+      { phase: 'Production', detail: '8M messages a day, with zero plaintext at rest on the server.' },
     ],
     metrics: [
       { label: 'Daily messages', value: '8M+' },
@@ -236,6 +304,23 @@ export const projects = [
       { name: 'gRPC', why: 'Strict contracts between gateway and upstreams.' },
       { name: 'Prometheus', why: 'Battle-tested metrics with a rich query language.' },
     ],
+    architecture: [
+      { name: 'Route table', role: 'Compiled from YAML into a radix tree at load. Lookups are allocation-free, which is most of the reason p99 overhead fits under 2ms.' },
+      { name: 'Filter chain', role: 'Auth, rate limit, cache, transform, and telemetry as ordered middleware. Each filter is independently benchmarked and can be disabled per route.' },
+      { name: 'Limiter', role: 'Token buckets in process with a Redis reconciliation loop, so a burst is absorbed locally and fairness across replicas is eventually correct.' },
+      { name: 'Telemetry pipeline', role: 'Prometheus counters, OTLP spans, and structured access logs all emitted from one hook, so they cannot tell three different stories about the same request.' },
+    ],
+    challenges: [
+      { title: 'Config reloads dropped connections', body: 'The first version rebound the listener on every reload. An atomic pointer swap of the route table replaced it: in-flight requests finish on the old config, new ones pick up the new one, nobody notices.' },
+      { title: 'Redis was a single point of failure', body: 'A Redis blip took the gateway down with it. Limits now degrade to local-only buckets and the cache falls through to origin, so an outage costs accuracy instead of availability.' },
+      { title: 'Cache invalidation was too coarse', body: 'Purging by URL left stale data behind and evicted plenty that was still good. Surrogate keys tagged at response time mean one entity change purges exactly the entries that referenced it.' },
+    ],
+    timeline: [
+      { phase: 'Audit', detail: 'Catalogued every nginx config, sidecar, and bespoke middleware the platform was running. Found eleven different rate-limit implementations.' },
+      { phase: 'Core', detail: 'Router, filter chain, and the benchmark harness that gated every change after it.' },
+      { phase: 'Migration', detail: 'Moved services across one at a time behind a shadow-traffic comparison.' },
+      { phase: 'Steady state', detail: '180k rps in production, with config changes shipped by service teams instead of the platform team.' },
+    ],
     metrics: [
       { label: 'Throughput', value: '180k rps' },
       { label: 'P99 overhead', value: '< 2ms' },
@@ -272,6 +357,23 @@ export const projects = [
       { name: 'GLSL', why: 'The lingua franca of fragment and vertex programs.' },
       { name: 'Canvas', why: 'Simple, performant 2D for sketches and overlays.' },
       { name: 'React', why: 'Composable editor panes, inspectors, and routing.' },
+    ],
+    architecture: [
+      { name: 'Sketch runtime', role: 'A sandboxed, origin-isolated iframe with a fixed message API. User code cannot reach the parent, which is what makes sharing safe by default.' },
+      { name: 'Shader pipeline', role: 'Compiles on a debounced worker and surfaces GLSL errors inline, with line numbers mapped back to the editor rather than to generated source.' },
+      { name: 'Content store', role: 'Sketches are immutable versions with a parent pointer, so forking is a cheap write and lineage is a query rather than a guess.' },
+      { name: 'Offline layer', role: 'A service worker caches the editor shell and every sketch you have opened, with a write queue that reconciles when you come back online.' },
+    ],
+    challenges: [
+      { title: 'Bad shaders locked the tab', body: 'An infinite loop in user GLSL froze the whole page, including the editor you would use to fix it. Compilation moved behind a worker with a watchdog, and the runtime now drops its context deliberately instead of hanging.' },
+      { title: 'Sharing leaked the parent page', body: 'Early sketches ran in the main frame and could reach app state — fine for one author, not for a gallery. The runtime was rewritten as an origin-isolated iframe with an explicit message API.' },
+      { title: 'Remixes lost their history', body: 'Forks were flat copies, so credit vanished after a single hop. Immutable versions with parent pointers made lineage free and gave the browse page something honest to show.' },
+    ],
+    timeline: [
+      { phase: 'Weekend hack', detail: 'A single shader editor with a hot-reload loop, built to scratch an itch.' },
+      { phase: 'Sandbox', detail: 'Reworked the runtime for isolation once other people started sharing sketches.' },
+      { phase: 'Social', detail: 'Forking, lineage, and a browse page that surfaces remixes alongside originals.' },
+      { phase: 'Ongoing', detail: '23k sketches, 3.4k creators, and a monthly community jam.' },
     ],
     metrics: [
       { label: 'Sketches shared', value: '23k+' },

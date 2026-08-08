@@ -48,7 +48,32 @@ src/
 
 Project case studies are plain data in
 [`src/projects/projectsData.js`](src/projects/projectsData.js); adding an entry
-there creates its card, its detail page, and its route.
+there creates its card, its detail page, and its route. Each project carries
+`overview`, `problem`, `solution`, `architecture`, `features`, `stack`,
+`challenges`, `timeline`, and `metrics`. The optional blocks (`architecture`,
+`challenges`, `timeline`, `metrics`) are skipped when absent, and section
+numbers on the detail page are generated in document order — so dropping one
+never leaves a gap in the sequence.
+
+Interactive demos live in
+[`src/components/ProjectDemo.js`](src/components/ProjectDemo.js), keyed by slug.
+They pause when scrolled out of view and when the visitor prefers reduced
+motion.
+
+## Contact form
+
+The form posts to [FormSubmit](https://formsubmit.co)'s AJAX endpoint, so
+there's no backend to run. Submissions are emailed to the address hardcoded in
+[`src/components/ContactForm.js`](src/components/ContactForm.js).
+
+**FormSubmit requires a one-time activation.** The first submission to a new
+address triggers a confirmation email; until someone clicks the link in it,
+submissions fail and the form falls back to showing a `mailto:` link. To change
+the destination, edit `ENDPOINT` and re-activate.
+
+Spam handling is a `_honey` honeypot field, positioned off-screen rather than
+`display: none` so bots still fill it in. Anything that trips it gets a fake
+success and is dropped.
 
 ## Deployment
 

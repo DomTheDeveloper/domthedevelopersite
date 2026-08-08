@@ -48,6 +48,11 @@ const ProjectDetail = () => {
 
   const otherProjects = projects.filter(p => p.slug !== project.slug).slice(0, 3);
 
+  // Sections number themselves in document order, so adding, reordering, or
+  // conditionally hiding one never leaves a gap in the sequence.
+  let section = 0;
+  const num = () => `${String(++section).padStart(2, '0')}.`;
+
   return (
     <div className="App">
       <ParticleField />
@@ -120,14 +125,14 @@ const ProjectDetail = () => {
         <div className="project-detail__inner">
           <section className="project-detail__block">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">01.</span> Overview
+              <span className="section__title-tag">{num()}</span> Overview
             </h2>
             <p className="project-detail__body">{project.overview}</p>
           </section>
 
           <section id="demo" className="project-detail__block project-detail__demo-section">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">02.</span> Live Demo
+              <span className="section__title-tag">{num()}</span> Live Demo
             </h2>
             <p className="project-detail__body project-detail__demo-lede">
               An interactive slice of {project.title} you can poke at right here.
@@ -142,21 +147,40 @@ const ProjectDetail = () => {
           <section className="project-detail__block project-detail__split">
             <div>
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">03.</span> Problem
+                <span className="section__title-tag">{num()}</span> Problem
               </h2>
               <p className="project-detail__body">{project.problem}</p>
             </div>
             <div>
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">04.</span> Solution
+                <span className="section__title-tag">{num()}</span> Solution
               </h2>
               <p className="project-detail__body">{project.solution}</p>
             </div>
           </section>
 
+          {project.architecture && (
+            <section className="project-detail__block">
+              <h2 className="project-detail__h2">
+                <span className="section__title-tag">{num()}</span> Architecture
+              </h2>
+              <ol className="project-detail__arch">
+                {project.architecture.map((a, i) => (
+                  <li key={a.name} className="project-detail__arch-item">
+                    <span className="project-detail__arch-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                    <div>
+                      <h3 className="project-detail__arch-name">{a.name}</h3>
+                      <p className="project-detail__arch-role">{a.role}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
           <section className="project-detail__block">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">05.</span> Key Features
+              <span className="section__title-tag">{num()}</span> Key Features
             </h2>
             <div className="project-detail__features">
               {project.features.map((f) => (
@@ -170,7 +194,7 @@ const ProjectDetail = () => {
 
           <section className="project-detail__block">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">06.</span> Tech Stack
+              <span className="section__title-tag">{num()}</span> Tech Stack
             </h2>
             <div className="project-detail__stack">
               {project.stack.map((s) => (
@@ -182,10 +206,43 @@ const ProjectDetail = () => {
             </div>
           </section>
 
+          {project.challenges && (
+            <section className="project-detail__block">
+              <h2 className="project-detail__h2">
+                <span className="section__title-tag">{num()}</span> Challenges &amp; Lessons
+              </h2>
+              <div className="project-detail__challenges">
+                {project.challenges.map((c) => (
+                  <div key={c.title} className="project-detail__challenge">
+                    <h3 className="project-detail__challenge-title">{c.title}</h3>
+                    <p className="project-detail__challenge-body">{c.body}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {project.timeline && (
+            <section className="project-detail__block">
+              <h2 className="project-detail__h2">
+                <span className="section__title-tag">{num()}</span> How It Came Together
+              </h2>
+              <ol className="project-detail__timeline">
+                {project.timeline.map((t) => (
+                  <li key={t.phase} className="project-detail__timeline-item">
+                    <span className="project-detail__timeline-marker" aria-hidden="true" />
+                    <h3 className="project-detail__timeline-phase">{t.phase}</h3>
+                    <p className="project-detail__timeline-detail">{t.detail}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
           {project.metrics && (
             <section className="project-detail__block">
               <h2 className="project-detail__h2">
-                <span className="section__title-tag">07.</span> Impact
+                <span className="section__title-tag">{num()}</span> Impact
               </h2>
               <div className="project-detail__metrics">
                 {project.metrics.map((m) => (
@@ -200,7 +257,7 @@ const ProjectDetail = () => {
 
           <section className="project-detail__block project-detail__next">
             <h2 className="project-detail__h2">
-              <span className="section__title-tag">08.</span> Other Work
+              <span className="section__title-tag">{num()}</span> Other Work
             </h2>
             <div className="project-detail__next-grid">
               {otherProjects.map((p) => (
