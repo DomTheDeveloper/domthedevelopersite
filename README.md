@@ -55,10 +55,17 @@ there creates its card, its detail page, and its route. Each project carries
 numbers on the detail page are generated in document order — so dropping one
 never leaves a gap in the sequence.
 
-Interactive demos live in
-[`src/components/ProjectDemo.js`](src/components/ProjectDemo.js), keyed by slug.
-They pause when scrolled out of view and when the visitor prefers reduced
-motion.
+Interactive demos live in [`src/components/demos/`](src/components/demos), one
+module per project, lazy-loaded by slug from
+[`ProjectDemo.js`](src/components/ProjectDemo.js) so reading one case study
+doesn't download the other five. Each subscribes to `MotionContext`
+([`demos/motion.js`](src/components/demos/motion.js)), which is false whenever
+the demo is off screen or the visitor prefers reduced motion — animation loops
+must check it rather than running unconditionally.
+
+The demos compute rather than mime: NeuralNet Studio runs real forward and
+backward passes, HyperAPI Gateway enforces an actual token bucket and cache,
+and PixelForge evaluates the field function its GLSL panel shows.
 
 ## Contact form
 
