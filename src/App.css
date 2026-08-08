@@ -3312,3 +3312,69 @@ input:focus-visible,
   font-size: 0.72em;
 }
 .navbar__links a.navbar__link--page:hover { opacity: 1; }
+
+/* Utilisation meter (CloudSync) */
+.demo__util {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.demo__util .demo__chart-label { margin: 0; flex-shrink: 0; }
+.demo__util-track {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(100, 200, 255, 0.08);
+  overflow: hidden;
+}
+.demo__util-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.45s ease, background 0.45s ease;
+}
+.demo__util-fill--hot { background: #ff6c6c; }
+/* Where the queueing curve turns vertical */
+.demo__util-knee {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: rgba(255, 159, 58, 0.75);
+}
+.demo__util-value {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  min-width: 4ch;
+  text-align: right;
+}
+
+/* Capacity ceiling on the throughput chart — moves when an incident takes
+   capacity away, so overload reads as "pinned against the line". */
+.demo__bars--capped { position: relative; }
+.demo__capacity-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed rgba(100, 200, 255, 0.5);
+  z-index: 2;
+  transition: bottom 0.6s ease;
+  pointer-events: none;
+}
+.demo__capacity-line--degraded { border-top-color: rgba(255, 108, 108, 0.85); }
+.demo__capacity-tag {
+  position: absolute;
+  right: 0;
+  top: -14px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(100, 200, 255, 0.7);
+}
+.demo__capacity-line--degraded .demo__capacity-tag { color: rgba(255, 108, 108, 0.9); }
