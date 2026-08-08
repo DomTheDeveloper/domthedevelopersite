@@ -3101,3 +3101,214 @@ input:focus-visible,
   .project-detail__art-pulse { animation: none; opacity: 0.15; }
   .route-loader__pulse { animation: none; border-top-color: var(--accent-glow); }
 }
+
+/* ========== VIDEOS / REELS ========== */
+.videos {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 9rem 2rem 4rem;
+}
+
+.videos__head { text-align: center; margin-bottom: 3rem; }
+
+.videos__title {
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+.videos__title .section__title-tag { color: var(--accent); margin-right: 0.5rem; }
+
+.videos__lede {
+  max-width: 620px;
+  margin: 0 auto 0.9rem;
+  color: var(--text-secondary);
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+
+.videos__hint {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.videos__feed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rem;
+}
+
+.reel {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.2rem;
+  scroll-margin-top: 8rem;
+}
+
+.reel__frame {
+  position: relative;
+  width: min(400px, 82vw);
+  aspect-ratio: 9 / 16;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #05070d;
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+  /* Dim the artwork, never the controls beside it — fading the whole row
+     dropped the spec text and buttons below AA contrast. */
+  opacity: 0.6;
+  transition: border-color 0.45s ease, box-shadow 0.45s ease, transform 0.45s ease, opacity 0.45s ease;
+}
+.reel--active .reel__frame {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--reel-accent) 45%, transparent);
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.65),
+              0 0 0 1px color-mix(in srgb, var(--reel-accent) 22%, transparent);
+  transform: translateY(-4px);
+}
+
+/* color-mix is widely supported, but keep a plain fallback for older engines */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .reel--active .reel__frame { border-color: rgba(100, 200, 255, 0.45); }
+}
+
+.reel__surface {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.reel__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reel__bars {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.reel__bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.reel__bar-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--reel-accent, var(--accent));
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.reel__pause-badge {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.4rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  background: rgba(5, 7, 13, 0.28);
+  pointer-events: none;
+}
+
+.reel__meta {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  z-index: 2;
+  display: grid;
+  gap: 0.2rem;
+  pointer-events: none;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+.reel__index {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--reel-accent, var(--accent));
+  letter-spacing: 0.12em;
+}
+.reel__name {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+}
+.reel__blurb {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.reel__side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 0.4rem;
+}
+.reel__spec {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+.reel__side-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.reel__side-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.videos__foot {
+  margin-top: 4rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .videos { padding: 7rem 1.2rem 3rem; }
+  .reel { flex-direction: column; align-items: center; gap: 0.8rem; }
+  .reel__side { flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: center; }
+}
+
+/* Route links in the nav sit apart from the section links */
+.navbar__links a.navbar__link--page {
+  color: var(--accent);
+  opacity: 0.85;
+}
+.navbar__links a.navbar__link--page::before {
+  content: '▸';
+  margin-right: 0.35rem;
+  font-size: 0.72em;
+}
+.navbar__links a.navbar__link--page:hover { opacity: 1; }

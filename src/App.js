@@ -16,6 +16,7 @@ import './App.css';
 
 const ProjectDetail = lazy(() => import('./components/ProjectDetail'));
 const NotFound = lazy(() => import('./components/NotFound'));
+const Videos = lazy(() => import('./components/Videos'));
 
 const RouteLoader = () => (
   <div className="route-loader" role="status" aria-live="polite" aria-label="Loading">
@@ -84,6 +85,7 @@ function App() {
         <Suspense fallback={<RouteLoader />}>
           <Routes>
             <Route path="/" element={<HomeRoute />} />
+            <Route path="/videos" element={<Videos />} />
             <Route path="/:section" element={<HomeRoute />} />
             <Route path="/project/:slug" element={<ProjectDetail />} />
             <Route path="*" element={<NotFound />} />

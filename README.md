@@ -24,6 +24,7 @@ lives behind a `#`:
 | --- | --- |
 | `#/` | Home |
 | `#/about`, `#/projects`, `#/arcade`, `#/techzone`, `#/contact` | Home, scrolled to that section |
+| `#/videos` | Reels — three 30s vertical films |
 | `#/project/:slug` | A project case study |
 | anything else | 404 page |
 
@@ -66,6 +67,31 @@ must check it rather than running unconditionally.
 The demos compute rather than mime: NeuralNet Studio runs real forward and
 backward passes, HyperAPI Gateway enforces an actual token bucket and cache,
 and PixelForge evaluates the field function its GLSL panel shows.
+
+## Reels
+
+`#/videos` plays three 30-second vertical films. There are no video files —
+every frame is drawn to canvas at render time.
+
+- [`src/reels/engine.js`](src/reels/engine.js) — the drawing toolkit: easing,
+  text with letter-spacing, RGB-split glitch, pills, starfield, perspective
+  grid.
+- [`src/reels/reels.js`](src/reels/reels.js) — the three reels, each a list of
+  scenes with `from`/`to` seconds and a `draw(ctx, { t, p })`. Overlapping
+  scenes composite in array order, so backgrounds go first and grain last.
+- [`ReelCanvas.js`](src/components/ReelCanvas.js) — the frame clock. Playback
+  state arrives by ref, so toggling play/pause never restarts the rAF loop.
+- [`Videos.js`](src/components/Videos.js) — the feed, progress bars, and
+  keyboard control.
+
+Everything is authored in a virtual **1080×1920** space (`REEL_W`/`REEL_H`) and
+scaled to the element, so a reel looks identical at any display size and the
+numbers in scene code are real reel pixels. Only the reel in view animates;
+progress is written straight to the DOM rather than through React state, and
+`prefers-reduced-motion` swaps all three for stills.
+
+To add a reel, append to `REELS`. To retime one, edit its scene bounds — the
+30-second length is `REEL_SECONDS`.
 
 ## Contact form
 

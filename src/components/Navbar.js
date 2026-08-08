@@ -7,6 +7,8 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const location = useLocation();
+  // Section highlighting only means anything on the one-page route.
+  const onHome = !location.pathname.startsWith('/project') && location.pathname !== '/videos';
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
@@ -80,14 +82,24 @@ const Navbar = () => {
             <li key={id}>
               <Link
                 to={`/${id}`}
-                className={activeId === id ? 'navbar__link--active' : undefined}
-                aria-current={activeId === id ? 'true' : undefined}
+                className={onHome && activeId === id ? 'navbar__link--active' : undefined}
+                aria-current={onHome && activeId === id ? 'true' : undefined}
                 onClick={() => handleLinkClick(`/${id}`, id)}
               >
                 {label}
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              to="/videos"
+              className={`navbar__link--page ${location.pathname === '/videos' ? 'navbar__link--active' : ''}`}
+              aria-current={location.pathname === '/videos' ? 'page' : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              Reels
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>
