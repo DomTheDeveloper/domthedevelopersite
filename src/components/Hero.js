@@ -42,6 +42,7 @@ const Hero = ({ scrollY }) => {
           Software Engineer <br className="hero__mobile-br" />&amp; Computer Scientist
           <br /><span className="hero__tag">&lt;/code&gt;</span>
         </p>
+        <p className="hero__slogan">Building the future, one line at a time.</p>
         <div className="hero__cta-row">
           <Link to="/contact" className="hero__cta">Let's Chat</Link>
           <Link to="/projects" className="hero__cta hero__cta--outline">Portfolio</Link>
